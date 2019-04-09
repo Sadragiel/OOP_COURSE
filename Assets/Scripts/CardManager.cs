@@ -2,6 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+ Класс для создания Карт
+ Здесь будут создаваться карты и колода
+ Карты Взрыва и Обезвреживания добавляться будут тут же
+     */
+
 public class Card
 {
     public string Name;

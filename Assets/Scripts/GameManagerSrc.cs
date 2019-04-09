@@ -3,21 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Assets.Scripts.Gamers;
 
 public class Game
 {
-    public List<Card> FrontEnemyHand,
-        PlayerHand,
-        Deck,
-        Discarded;
+    //Static information
+    public static int StartCardCount;
+    public static int TurnTime;
+    static Game()
+    {
+        StartCardCount = 4;
+        TurnTime = 30;
+    }
+    //Non-static
+    public List<Card> Deck;
     public Game()
     {
         Deck = GetDeck();
-        FrontEnemyHand = new List<Card>();
-        PlayerHand = new List<Card>();
-        Discarded = new List<Card>();
     }
-
+    //TODO Create valid deck
     List<Card> GetDeck()
     {
         List<Card> list = new List<Card>();
@@ -30,77 +34,86 @@ public class Game
 
 public class GameManagerSrc : MonoBehaviour
 {
-    public Game CurrentGame;
-    public Transform
-        PlayerHand,
-        FrontEnemyHand;
+    //Data from inspector
+    public Transform[] Hands;
     public GameObject CardPref;
-    public int StartCardCount;
-    public int Turn;
     public Button EndFirstStepOfTurnBTN;
-    public int TurnTime;
-    public TextMeshProUGUI TimeCount;
+    public TextMeshProUGUI Timer;
+
+    //LocalData
+    public Game CurrentGame;
+    public List<Gamer> Gamers;
+
+    private int NumberOfCurrentPlayer;
+
+    //Properties
+    public int CurrentPlayerIndex
+    {
+        get => NumberOfCurrentPlayer % Gamers.Count;
+    }
     public bool IsPlayerTurn
     {
-        get => Turn % 2 == 0;
+        get => CurrentPlayerIndex == 0;
     }
+    public Gamer CurrentPlayer
+    {
+        get => Gamers[CurrentPlayerIndex];
+    }
+    public List<Card> Deck
+    {
+        get => CurrentGame.Deck;
+    }
+    
+
     void Start()
     {
+        if (Hands.Length < 2)
+            throw new System.Exception("No players exception");
         CurrentGame = new Game();
-        Turn = 0;
-        StartCardCount = 4;
-        GetStartCards(CurrentGame.Deck, PlayerHand);
-        GetStartCards(CurrentGame.Deck, FrontEnemyHand);
-        StartCoroutine(TurnFunc());
-    }
-
-    void GetStartCards(List<Card> Deck, Transform Hand)
-    {
-        for (int i = 0; i < StartCardCount; i++)
-            GetCardToHand(Deck, Hand);
-    }
-
-    void GetCardToHand(List<Card> Deck, Transform Hand)
-    {
-        if (Deck.Count == 0)
-            return;
-        Card card = Deck[0];
-        GameObject cardGO = Instantiate(CardPref, Hand, false);
-        cardGO.GetComponent<CardInfo>().ShowCardInfo(card, Hand == PlayerHand);
-        Deck.RemoveAt(0);
-    }
-
-    IEnumerator TurnFunc()
-    {
-        print("Coroutine: Turn is " + Turn.ToString());
-        TurnTime = 30;
-        TimeCount.text = TurnTime.ToString();
-        if (IsPlayerTurn)
+        NumberOfCurrentPlayer = 0;
+        //Players
+        Gamers = new List<Gamer>()
         {
-            while (TurnTime-- > 0)
-            {
-                TimeCount.text = TurnTime.ToString();
-                yield return new WaitForSeconds(1);
-            }
-        }
-        else
+            new Player(Hands[0], this)
+        };
+        for (int i = 1; i < Hands.Length; i++)
         {
-            while (TurnTime-- > 27)
-            {
-                TimeCount.text = TurnTime.ToString();
-                yield return new WaitForSeconds(1);
-            }
+            Gamers.Add(new Enemy(Hands[i], this));
         }
-        EndFirstStepOfTurn();
+        foreach (Gamer gamer in Gamers)
+        {
+            GetStartCards(gamer);
+        }
+        EndFirstStepOfTurnBTN.interactable = true;
+        CurrentPlayer.Turn();
     }
 
-    public void EndFirstStepOfTurn()
+    void GetStartCards(Gamer gamer)
+    {
+        for (int i = 0; i < Game.StartCardCount; i++)
+            gamer.GetCardToHand(Deck);
+    }
+
+    public GameObject CreateCard(Transform Hand)
+    {
+        return Instantiate(CardPref, Hand, false);
+    }
+
+    public void SwitchBTN()
+    {
+        EndFirstStepOfTurnBTN.interactable = !EndFirstStepOfTurnBTN.interactable;
+    }
+
+    public void SetTimerValue(int value)
+    {
+        Timer.text = value.ToString();
+    }
+
+    public void ChangeTurn()
     {
         StopAllCoroutines();
-        GetCardToHand(CurrentGame.Deck, IsPlayerTurn ? PlayerHand : FrontEnemyHand);
-        print("EndFirstStepOfTurn: Turn is " + Turn.ToString());
-        Turn++;
-        EndFirstStepOfTurnBTN.interactable = IsPlayerTurn;
-        StartCoroutine(TurnFunc());
+        CurrentPlayer.GetCardToHand(CurrentGame.Deck);
+        NumberOfCurrentPlayer++;
+        CurrentPlayer.Turn();
     }
 }

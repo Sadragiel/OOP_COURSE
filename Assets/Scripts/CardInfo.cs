@@ -10,17 +10,12 @@ public class CardInfo : MonoBehaviour
     public Image Logo;
     public TextMeshProUGUI Name;
 
-
+    //TODO Bad function
     public void ShowCardInfo(Card card, bool flag)
     {
         this.SelfCard = card;
         this.Logo.sprite = flag ? card.Logo : null;
         this.Logo.preserveAspect = flag;
         this.Name.text = flag ? card.Name : null;
-    }
-
-    private void Start()
-    {
-        //ShowCardInfo(CardStorage.AllCards[transform.GetSiblingIndex()], true);
     }
 }

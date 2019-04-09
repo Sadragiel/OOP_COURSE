@@ -192,7 +192,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 519420033}
-        m_MethodName: EndFirstStepOfTurn
+        m_MethodName: ChangeTurn
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -349,15 +349,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ac9dab50ec55364a8a6c3d7405e2164, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerHand: {fileID: 692759805}
-  FrontEnemyHand: {fileID: 1439148980}
+  Hands:
+  - {fileID: 692759805}
+  - {fileID: 1439148980}
   CardPref: {fileID: 3444094086407367478, guid: 7b3fd4a8fbfc2da4bbd28c5f66832961,
     type: 3}
-  StartCardCount: 4
-  Turn: 0
   EndFirstStepOfTurnBTN: {fileID: 41792803}
-  TurnTime: 0
-  TimeCount: {fileID: 1010519191}
+  Timer: {fileID: 1010519191}
 --- !u!1 &692759804
 GameObject:
   m_ObjectHideFlags: 0
@@ -470,6 +468,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Type: 0
+  GameManager: {fileID: 0}
 --- !u!1 &1010519189
 GameObject:
   m_ObjectHideFlags: 0
@@ -721,7 +720,6 @@ GameObject:
   - component: {fileID: 1286064242}
   - component: {fileID: 1286064241}
   - component: {fileID: 1286064240}
-  - component: {fileID: 1286064239}
   m_Layer: 5
   m_Name: Deck
   m_TagString: Untagged
@@ -748,19 +746,6 @@ RectTransform:
   m_AnchoredPosition: {x: -6434, y: 0.0000000018626}
   m_SizeDelta: {x: 1951, y: 2475.5}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1286064239
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1286064237}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5440f2f62f343104e8a7fa5fa8d870e9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Type: 2
 --- !u!114 &1286064240
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -873,6 +858,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Type: 3
+  GameManager: {fileID: 0}
 --- !u!114 &1363231578
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -945,7 +931,6 @@ GameObject:
   - component: {fileID: 1439148984}
   - component: {fileID: 1439148983}
   - component: {fileID: 1439148982}
-  - component: {fileID: 1439148981}
   m_Layer: 5
   m_Name: FrontEnemyHand
   m_TagString: Untagged
@@ -972,19 +957,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 9632.5}
   m_SizeDelta: {x: 0, y: 2475}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1439148981
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1439148979}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5440f2f62f343104e8a7fa5fa8d870e9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Type: 1
 --- !u!114 &1439148982
 MonoBehaviour:
   m_ObjectHideFlags: 0
