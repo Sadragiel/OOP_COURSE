@@ -16,8 +16,9 @@ namespace Assets.Scripts.Gamers
 
             //TODO EXPLOSION
 
+            //Cards.Add(card);
             GameObject cardGO = GameManager.CreateCard(Hand);
-            cardGO.GetComponent<CardInfo>().ShowCardInfo(card, true);
+            cardGO.GetComponent<CardInfo>().ShowCardInfo(card);
 
             GameManager.SwitchBTN();
         }

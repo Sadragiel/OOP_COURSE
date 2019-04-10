@@ -6,7 +6,7 @@ namespace Assets.Scripts.Gamers
 {
     public abstract class Gamer
     {
-        //public List<Card> Cards;
+        public List<Card> Cards;
         public Gamer(Transform Hand, GameManagerSrc GameManager)
         {
             this.Hand = Hand;

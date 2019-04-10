@@ -352,6 +352,8 @@ MonoBehaviour:
   Hands:
   - {fileID: 692759805}
   - {fileID: 1439148980}
+  DiscerdedPlace: {fileID: 1363231576}
+  DeckPlace: {fileID: 1286064238}
   CardPref: {fileID: 3444094086407367478, guid: 7b3fd4a8fbfc2da4bbd28c5f66832961,
     type: 3}
   EndFirstStepOfTurnBTN: {fileID: 41792803}

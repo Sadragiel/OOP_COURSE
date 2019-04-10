@@ -9,13 +9,18 @@ public class CardInfo : MonoBehaviour
     public Card SelfCard;
     public Image Logo;
     public TextMeshProUGUI Name;
+    public GameObject HideObj;
 
-    //TODO Bad function
-    public void ShowCardInfo(Card card, bool flag)
+    public void HideCardInfo(bool f)
     {
-        this.SelfCard = card;
-        this.Logo.sprite = flag ? card.Logo : null;
-        this.Logo.preserveAspect = flag;
-        this.Name.text = flag ? card.Name : null;
+        HideObj.SetActive(f);
+    }
+    public void ShowCardInfo(Card card)
+    {
+        HideObj.SetActive(false);
+
+        Logo.sprite = card.Logo;
+        Logo.preserveAspect = true;
+        Name.text = card.Name;
     }
 }

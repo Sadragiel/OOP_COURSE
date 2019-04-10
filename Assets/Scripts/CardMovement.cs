@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using DG.Tweening;
 
 public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -43,5 +44,18 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         transform.SetParent(DefaultParrent);
         GetComponent<CanvasGroup>().blocksRaycasts = true;
         
+    }
+
+    public void SetAsDiscarded()
+    {
+        if (GameManager.DiscerdedPlace.gameObject.transform.childCount != 0)
+            Destroy(GameManager.DiscerdedPlace.gameObject.transform.GetChild(0).gameObject);
+        transform.SetParent(GameManager.DiscerdedPlace);
+    }
+
+    public void Discard()
+    {
+        transform.SetParent(GameObject.Find("Canvas").transform);
+        transform.DOMove(GameManager.DiscerdedPlace.position, .5f);
     }
 }

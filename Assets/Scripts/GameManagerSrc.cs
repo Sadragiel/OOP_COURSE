@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using Assets.Scripts.Gamers;
 
+
 public class Game
 {
     //Static information
@@ -36,6 +37,8 @@ public class GameManagerSrc : MonoBehaviour
 {
     //Data from inspector
     public Transform[] Hands;
+    public Transform DiscerdedPlace;
+    public Transform DeckPlace;
     public GameObject CardPref;
     public Button EndFirstStepOfTurnBTN;
     public TextMeshProUGUI Timer;
