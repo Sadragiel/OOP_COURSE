@@ -7,12 +7,11 @@ namespace Assets.Scripts.Gamers
     public class Player : Gamer
     {
         public Player(Transform Hand, GameManagerSrc GameManager) : base(Hand, GameManager) { }
-        public override void GetCardToHand(List<Card> Deck)
+        public override void GetCardToHand(Deck.Deck Deck)
         {
-            if (Deck.Count == 0)
+            if (Deck.IsEmpty())
                 return;
-            Card card = Deck[0];
-            Deck.RemoveAt(0);
+            Card card = Deck.GetCard();
 
             //TODO EXPLOSION
 

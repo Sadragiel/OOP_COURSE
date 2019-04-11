@@ -12,8 +12,6 @@ public class CardControl : MonoBehaviour
 
     public void Init(Card card, bool isPlayerCard)
     {
-        if (card == null)
-            print("NULL");
         Card = card;
         IsPlayerCard = isPlayerCard;
 

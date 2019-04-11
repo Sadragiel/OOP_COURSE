@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Assets.Scripts.Gamers;
-
+using Assets.Scripts.Deck;
 
 public class Game
 {
@@ -17,18 +17,10 @@ public class Game
         TurnTime = 30;
     }
     //Non-static
-    public List<Card> Deck;
+    public Deck Deck;
     public Game()
     {
-        Deck = GetDeck();
-    }
-    //TODO Create valid deck
-    List<Card> GetDeck()
-    {
-        List<Card> list = new List<Card>();
-        for (int i = 0; i < 20; i++)
-            list.Add(CardStorage.AllCards[Random.Range(0, CardStorage.AllCards.Count)]);
-        return list;
+         Deck = new Deck(2);
     }
 }
 
@@ -63,7 +55,7 @@ public class GameManagerSrc : MonoBehaviour
     {
         get => Gamers[CurrentPlayerIndex];
     }
-    public List<Card> Deck
+    public Deck Deck
     {
         get => CurrentGame.Deck;
     }
@@ -146,6 +138,14 @@ public class GameManagerSrc : MonoBehaviour
     {
         print("Check");
     }
+    public void Neutralization()
+    {
+        print("Neutralization");
+    }
+    public void Explosion()
+    {
+        print("Explosion");
+    }
 
 
     public void ChangeTurn()
@@ -160,5 +160,12 @@ public class GameManagerSrc : MonoBehaviour
         NumberOfCardToGet = 1;
         SwitchBTN();
         CurrentPlayer.Turn();
+    }
+
+
+    //DebugLog
+    public void Test(string s)
+    {
+        print(s);
     }
 }

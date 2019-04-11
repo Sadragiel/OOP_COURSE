@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Assets.Scripts.Deck;
 namespace Assets.Scripts.Gamers
 {
     public abstract class Gamer
@@ -14,7 +14,7 @@ namespace Assets.Scripts.Gamers
         }
         protected GameManagerSrc GameManager;
         public Transform Hand;
-        public abstract void GetCardToHand(List<Card> Deck);
+        public abstract void GetCardToHand(Deck.Deck deck);
         protected abstract IEnumerator PlayngCards();               //Coroutine
         protected void EndTurn()
         {
