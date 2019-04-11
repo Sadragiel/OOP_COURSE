@@ -15,13 +15,13 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     void Awake()
     {
         MainCamera = Camera.allCameras[0];
-        GameManager = FindObjectOfType<GameManagerSrc>();
+        GameManager = GameManagerSrc.Instance;
     }
     public void OnBeginDrag(PointerEventData eventData)
     {
         offset = this.transform.position - MainCamera.ScreenToWorldPoint(eventData.position);
         DefaultParrent = transform.parent;
-        isDragable = DefaultParrent.GetComponent<DropPlace>().Type == FieldType.SELF_HAND && GameManager.IsPlayerTurn;
+        isDragable = DefaultParrent.GetComponent<DropPlace>()?.Type == FieldType.SELF_HAND && GameManager.IsPlayerTurn;
         if (!isDragable)
             return;
         transform.SetParent(DefaultParrent.parent);
@@ -51,6 +51,8 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (GameManager.DiscerdedPlace.gameObject.transform.childCount != 0)
             Destroy(GameManager.DiscerdedPlace.gameObject.transform.GetChild(0).gameObject);
         transform.SetParent(GameManager.DiscerdedPlace);
+        this.GetComponent<CardControl>().Info.ShowCardInfo();
+
     }
 
     public void Discard()

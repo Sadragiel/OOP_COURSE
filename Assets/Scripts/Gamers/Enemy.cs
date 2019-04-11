@@ -17,10 +17,10 @@ namespace Assets.Scripts.Gamers
             //TODO EXPLOSION
 
             //Cards.Add(card);
-            GameObject cardGO = GameManager.CreateCard(Hand);
-            cardGO.GetComponent<CardInfo>().HideCardInfo(true);
+            GameObject cardGO = GameManager.CreateCard(card, Hand);
+            cardGO.GetComponent<CardInfo>().HideCardInfo();
 
-            GameManager.SwitchBTN();
+            
         }
 
         IEnumerator ClockControl()
@@ -38,14 +38,22 @@ namespace Assets.Scripts.Gamers
         protected override IEnumerator PlayngCards()
         {
             GameManager.StartCoroutine(ClockControl());
+            
             yield return new WaitForSeconds(1);
             GameObject cardGO = Hand.gameObject.transform.GetChild(0).gameObject;
-            cardGO.GetComponent<CardMovement>().Discard();
+            CardControl cardConеrol = cardGO.GetComponent<CardControl>();
+            cardConеrol.Movement.Discard();
             yield return new WaitForSeconds(1);
-            cardGO.GetComponent<CardMovement>().SetAsDiscarded();
-            cardGO.GetComponent<CardInfo>().HideCardInfo(false);
+            cardConеrol.Movement.SetAsDiscarded();
             yield return new WaitForSeconds(1);
-            EndTurn();
+            if (cardConеrol.Card.Effect.WillEndTheTurn)
+                cardConеrol.Card.Effect.Execute();
+            else
+            {
+                cardConеrol.Card.Effect.Execute();
+                EndTurn();
+            }
+                
         }
     }
 }

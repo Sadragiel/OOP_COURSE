@@ -23,15 +23,16 @@ public class DropPlace : MonoBehaviour, IDropHandler
     {
         if (Type != FieldType.DISCARDED_FIELD || !GameManager.IsPlayerTurn)
             return;
-        CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();
+        CardControl cardControl = eventData.pointerDrag.GetComponent<CardControl>();
 
-        if (card)
+        if (cardControl?.Movement?.isDragable == true)
         {
-            card.DefaultParrent = transform;
+            cardControl.Movement.DefaultParrent = transform;
             if (Type == FieldType.DISCARDED_FIELD)
             {
                 if(this.gameObject.transform.childCount != 0)
                     Destroy(this.gameObject.transform.GetChild(0).gameObject);
+                cardControl.Card.Effect.Execute();
             }
         }
             

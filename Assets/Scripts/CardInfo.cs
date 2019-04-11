@@ -6,21 +6,21 @@ using TMPro;
 
 public class CardInfo : MonoBehaviour
 {
+    public CardControl CC;
     public Card SelfCard;
     public Image Logo;
     public TextMeshProUGUI Name;
     public GameObject HideObj;
 
-    public void HideCardInfo(bool f)
+    public void HideCardInfo()
     {
-        HideObj.SetActive(f);
+        HideObj.SetActive(true);
     }
-    public void ShowCardInfo(Card card)
+    public void ShowCardInfo()
     {
         HideObj.SetActive(false);
-
-        Logo.sprite = card.Logo;
+        Logo.sprite = CC.Card.Logo;
         Logo.preserveAspect = true;
-        Name.text = card.Name;
+        Name.text = CC.Card.Name;
     }
 }

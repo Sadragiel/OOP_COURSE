@@ -47,7 +47,8 @@ public class GameManagerSrc : MonoBehaviour
     public Game CurrentGame;
     public List<Gamer> Gamers;
 
-    private int NumberOfCurrentPlayer;
+    int NumberOfCurrentPlayer;
+    int NumberOfCardToGet = 1;
 
     //Properties
     public int CurrentPlayerIndex
@@ -66,7 +67,14 @@ public class GameManagerSrc : MonoBehaviour
     {
         get => CurrentGame.Deck;
     }
-    
+
+    //Singltone
+    public static GameManagerSrc Instance;
+    private void Awake()
+    {
+        if (Instance == null)
+            Instance = this;
+    }
 
     void Start()
     {
@@ -88,6 +96,7 @@ public class GameManagerSrc : MonoBehaviour
             GetStartCards(gamer);
         }
         EndFirstStepOfTurnBTN.interactable = true;
+
         CurrentPlayer.Turn();
     }
 
@@ -97,9 +106,12 @@ public class GameManagerSrc : MonoBehaviour
             gamer.GetCardToHand(Deck);
     }
 
-    public GameObject CreateCard(Transform Hand)
+    public GameObject CreateCard(Card card, Transform Hand)
     {
-        return Instantiate(CardPref, Hand, false);
+        GameObject cardGO = Instantiate(CardPref, Hand, false);
+        CardControl cardC = cardGO.GetComponent<CardControl>();
+        cardC.Init(card, true);
+        return cardGO;
     }
 
     public void SwitchBTN()
@@ -112,11 +124,41 @@ public class GameManagerSrc : MonoBehaviour
         Timer.text = value.ToString();
     }
 
+    //Comands
+    public void SkipTurn()
+    {
+        print("SkipTurn");
+        NumberOfCardToGet--;
+        ChangeTurn();
+    }
+    public void Attack()
+    {
+        print("Attack");
+        NumberOfCardToGet = 0;
+        ChangeTurn();
+        NumberOfCardToGet = 2;
+    }
+    public void Shuffle()
+    {
+        print("Shuffle");
+    }
+    public void Check()
+    {
+        print("Check");
+    }
+
+
     public void ChangeTurn()
     {
+        if (NumberOfCardToGet < 0)
+            NumberOfCardToGet = 1;
+        print(string.Format("GameManager report: Ходил Игрок номер {0}; Количество карт к взятию {1}", CurrentPlayerIndex, NumberOfCardToGet));
         StopAllCoroutines();
-        CurrentPlayer.GetCardToHand(CurrentGame.Deck);
+        while(NumberOfCardToGet-- > 0)
+            CurrentPlayer.GetCardToHand(CurrentGame.Deck);
         NumberOfCurrentPlayer++;
+        NumberOfCardToGet = 1;
+        SwitchBTN();
         CurrentPlayer.Turn();
     }
 }

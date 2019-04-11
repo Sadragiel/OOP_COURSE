@@ -17,10 +17,9 @@ namespace Assets.Scripts.Gamers
             //TODO EXPLOSION
 
             //Cards.Add(card);
-            GameObject cardGO = GameManager.CreateCard(Hand);
-            cardGO.GetComponent<CardInfo>().ShowCardInfo(card);
+            GameObject cardGO = GameManager.CreateCard(card, Hand);
+            cardGO.GetComponent<CardInfo>().ShowCardInfo();
 
-            GameManager.SwitchBTN();
         }
 
         protected override IEnumerator PlayngCards()
