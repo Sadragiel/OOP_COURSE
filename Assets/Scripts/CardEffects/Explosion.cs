@@ -6,12 +6,8 @@ using System.Threading.Tasks;
 
 namespace Assets.Scripts.CardEffects
 {
-    class Explosion : Effect
+    class Explosion : PreEffect
     {
-        public Explosion() : base()
-        {
-            this.WillEndTheTurn = false;
-        }
         public override void Execute()
         {
             GameManagerSrc.Instance.Explosion();

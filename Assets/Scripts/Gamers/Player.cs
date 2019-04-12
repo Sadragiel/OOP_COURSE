@@ -15,10 +15,13 @@ namespace Assets.Scripts.Gamers
 
             //TODO EXPLOSION
 
-            //Cards.Add(card);
-            GameObject cardGO = GameManager.CreateCard(card, Hand);
-            cardGO.GetComponent<CardInfo>().ShowCardInfo();
+            GetCardToHand(card);
+        }
 
+        public override void GetCardToHand(Card Card)
+        {
+            GameObject cardGO = GameManager.CreateCard(Card, Hand);
+            cardGO.GetComponent<CardInfo>().ShowCardInfo();
         }
 
         protected override IEnumerator PlayngCards()

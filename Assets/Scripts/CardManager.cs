@@ -15,16 +15,20 @@ public class Card : ICloneable
 {
     public string Name;
     public Sprite Logo;
+    public bool isPlayable;
 
     //Bridge+Comand
     public Effect Effect;
+    public PreEffect PreEffect;
 
     public Card() {}
-    public Card(string Name, string LogoPath, Effect Effect)
+    public Card(string Name, string LogoPath, bool isPlayable, Effect Effect, PreEffect PreEffect = null)
     {
         this.Name = Name;
         this.Logo = Resources.Load<Sprite>(LogoPath);
+        this.isPlayable = isPlayable;
         this.Effect = Effect;
+        this.PreEffect = PreEffect;
     }
 
     public object Clone()
@@ -49,31 +53,19 @@ public class CardCreator
     {
         template = new Card();
     }
-    public Card Create(string Name, string LogoPath, Effect Effect)
+    public Card Create(string Name, string LogoPath, bool isPlayable, Effect Effect, PreEffect PreEffect = null)
     {
         Card newCard = template.Clone() as Card;
         newCard.Name = Name;
         newCard.Logo = Resources.Load<Sprite>(LogoPath);
+        newCard.isPlayable = isPlayable;
         newCard.Effect = Effect;
+        newCard.PreEffect = PreEffect;
         return newCard;
     }
 }
 
 
-public static class CardStorage
-{
-    public static List<Card> AllCards = new List<Card>();
-}
-
 public class CardManager : MonoBehaviour
 {
-    CardCreator Creator;
-    public void Awake()
-    {
-        Creator = new CardCreator();
-        CardStorage.AllCards.Add(Creator.Create("Jeanne", "Sprites/Jeanne", new Attack()));
-        CardStorage.AllCards.Add(Creator.Create("Atalanta", "Sprites/Atalanta", new SkipTurn()));
-        CardStorage.AllCards.Add(Creator.Create("Kiyohime", "Sprites/Kiyohime", new Shuffle()));
-        CardStorage.AllCards.Add(Creator.Create("Mash", "Sprites/Mash", new Check()));
-    }
 }

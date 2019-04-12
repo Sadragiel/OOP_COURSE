@@ -6,12 +6,8 @@ using System.Threading.Tasks;
 
 namespace Assets.Scripts.CardEffects
 {
-    class Neutralization: Effect
+    class Neutralization: PreEffect
     {
-        public Neutralization() : base()
-        {
-            this.WillEndTheTurn = false;
-        }
         public override void Execute()
         {
             GameManagerSrc.Instance.Neutralization();

@@ -15,11 +15,13 @@ namespace Assets.Scripts.Gamers
 
             //TODO EXPLOSION
 
-            //Cards.Add(card);
-            GameObject cardGO = GameManager.CreateCard(card, Hand);
-            cardGO.GetComponent<CardInfo>().HideCardInfo();
+            GetCardToHand(card);
+        }
 
-            
+        public override void GetCardToHand(Card Card)
+        {
+            GameObject cardGO = GameManager.CreateCard(Card, Hand);
+            cardGO.GetComponent<CardInfo>().HideCardInfo();
         }
 
         IEnumerator ClockControl()
@@ -37,22 +39,31 @@ namespace Assets.Scripts.Gamers
         protected override IEnumerator PlayngCards()
         {
             GameManager.StartCoroutine(ClockControl());
-            
             yield return new WaitForSeconds(1);
-            GameObject cardGO = Hand.gameObject.transform.GetChild(0).gameObject;
-            CardControl cardConеrol = cardGO.GetComponent<CardControl>();
-            cardConеrol.Movement.Discard();
-            yield return new WaitForSeconds(1);
-            cardConеrol.Movement.SetAsDiscarded();
-            yield return new WaitForSeconds(1);
-            if (cardConеrol.Card.Effect.WillEndTheTurn)
-                cardConеrol.Card.Effect.Execute();
-            else
+            for (int i = 0; i < Hand.transform.childCount; i++)
             {
-                cardConеrol.Card.Effect.Execute();
-                EndTurn();
+                GameObject cardGO = Hand.gameObject.transform.GetChild(i).gameObject;
+                CardControl cardControl = cardGO.GetComponent<CardControl>();
+                if (!cardControl.Card.isPlayable)
+                    continue;
+                cardControl.Movement.Discard();
+                yield return new WaitForSeconds(1);
+                cardControl.Movement.SetAsDiscarded();
+                yield return new WaitForSeconds(1);
+                if (cardControl.Card.Effect.WillEndTheTurn)
+                {
+                    cardControl.Card.Effect.Execute();
+                    break;
+                }
+                else
+                {
+                    cardControl.Card.Effect.Execute();
+                    EndTurn();
+                    break;
+                }
             }
-                
+            yield return new WaitForSeconds(2);
+            EndTurn();
         }
     }
 }

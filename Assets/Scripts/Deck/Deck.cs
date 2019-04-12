@@ -32,19 +32,20 @@ namespace Assets.Scripts.Deck
 
         public Deck(int numOfPlayers)
         {
+            NextCards = new List<CardType>();
             Creator = new CardCreator();
             CardLists = new Dictionary<CardType, CardListInfo>() {
                 { CardType.ATTACK,
-                    new CardListInfo(Creator.Create("ATTACK", "Sprites/Jeanne", new Attack()), 4)
+                    new CardListInfo(Creator.Create("ATTACK", "Sprites/Jeanne", true, new Attack()), 4)
                 },
                 { CardType.SKIP,
-                    new CardListInfo(Creator.Create("SKIP", "Sprites/Atalanta", new SkipTurn()), 4)
+                    new CardListInfo(Creator.Create("SKIP", "Sprites/Atalanta", true, new SkipTurn()), 4)
                 },
                 { CardType.SHUFFLE,
-                    new CardListInfo(Creator.Create("SHUFFLE", "Sprites/Kiyohime", new Shuffle()), 4)
+                    new CardListInfo(Creator.Create("SHUFFLE", "Sprites/Kiyohime", true, new Shuffle()), 4)
                 },
                 { CardType.CHECK,
-                    new CardListInfo(Creator.Create("CHECK", "Sprites/Mash", new Check()), 4)
+                    new CardListInfo(Creator.Create("CHECK", "Sprites/Mash", true, new Check()), 4)
                 },
             };
         }
@@ -54,21 +55,55 @@ namespace Assets.Scripts.Deck
             bool res = true;
             foreach (KeyValuePair<CardType, CardListInfo> entry in CardLists)
             {
-                GameManagerSrc.Instance.Test("res is " + res.ToString());
                 res = res && entry.Value.CardRemained <= 0;
                 if (!res)
                     return res;
             }
-
             return res;
+        }
+
+        int Remained()
+        {
+            int res = 0;
+            foreach (KeyValuePair<CardType, CardListInfo> entry in CardLists)
+            {
+                res += entry.Value.CardRemained;
+            }
+            return res;
+        }
+
+        public List<CardType> CheckForNextCards(int numOfCards)
+        {
+            for (int i = 0; i < Math.Min(numOfCards, Remained()); i++)
+            {
+                bool wasFound = false;
+                while (!wasFound)
+                {
+                    CardType type = GetRandomType();
+                    if (CardLists[type].CardRemained > 0)
+                    {
+                        NextCards.Add(type);
+                        wasFound = true;
+                    } 
+                }
+            }
+            return NextCards;
+        }
+
+        public void Shuffle()
+        {
+            while (NextCards.Count != 0)
+            {
+                NextCards.RemoveAt(0);
+            }
         }
 
         public void FillByExtraCards()
         {
             CardLists.Add(CardType.EXPLOSION,
-                    new CardListInfo(Creator.Create("EXPLOSION", "Sprites/Hassaan", new Explosion()), 4));
+                    new CardListInfo(Creator.Create("EXPLOSION", "Sprites/Hassaan", false, null, new Explosion()), 4));
             CardLists.Add(CardType.NEUTRALIZATION,
-                    new CardListInfo(Creator.Create("NEUTRALIZATION", "Sprites/Merlin", new Neutralization()), 4));
+                    new CardListInfo(Creator.Create("NEUTRALIZATION", "Sprites/Merlin", false, null, new Neutralization()), 4));
         }
 
         CardType GetRandomType()
@@ -77,39 +112,20 @@ namespace Assets.Scripts.Deck
             return (CardType)enumValues.GetValue(_Random.Next(enumValues.Length));
         }
 
-        void print(CardType type)
-        {
-            switch (type)
-            {
-                case CardType.ATTACK: GameManagerSrc.Instance.Test("Type is ATTACK"); break;
-                case CardType.EXPLOSION:
-                    GameManagerSrc.Instance.Test("Type is EXPLOSION");
-                    break;
-                case CardType.NEUTRALIZATION:
-                    GameManagerSrc.Instance.Test("Type is NEUTRALIZATION");
-                    break;
-                case CardType.SHUFFLE:
-                    GameManagerSrc.Instance.Test("Type is SHUFFLE");
-                    break;
-                case CardType.SKIP:
-                    GameManagerSrc.Instance.Test("Type is SKIP");
-                    break;
-                case CardType.CHECK:
-                    GameManagerSrc.Instance.Test("Type is CHECK");
-                    break;
-            }
-        }
-
         public Card GetCard()
         {
             Card card = null;
+            if (NextCards.Count != 0)
+            {
+                card = GetCard(NextCards[0]);
+                NextCards.RemoveAt(0);
+            }
             while(card == null)
                 card = GetCard(GetRandomType());
             return card;
         }
         public Card GetCard(CardType type)
         {
-            print(type);
             try
             {
                 CardListInfo CardList = CardLists[type]; // До добавляния карт Взрыва и Обезвреживания может возникнуть исключение

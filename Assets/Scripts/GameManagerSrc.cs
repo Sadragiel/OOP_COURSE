@@ -83,19 +83,26 @@ public class GameManagerSrc : MonoBehaviour
         {
             Gamers.Add(new Enemy(Hands[i], this));
         }
-        foreach (Gamer gamer in Gamers)
-        {
-            GetStartCards(gamer);
-        }
+
+        StartCardManipulation();
+        
         EndFirstStepOfTurnBTN.interactable = true;
 
         CurrentPlayer.Turn();
     }
 
-    void GetStartCards(Gamer gamer)
+    void StartCardManipulation()
     {
-        for (int i = 0; i < Game.StartCardCount; i++)
-            gamer.GetCardToHand(Deck);
+        foreach (Gamer gamer in Gamers)
+        {
+            for (int i = 0; i < Game.StartCardCount; i++)
+                gamer.GetCardToHand(Deck);
+        }
+        Deck.FillByExtraCards();
+        foreach (Gamer gamer in Gamers)
+        {
+            gamer.GetCardToHand(Deck.GetCard(Deck.CardType.NEUTRALIZATION));
+        }
     }
 
     public GameObject CreateCard(Card card, Transform Hand)
@@ -132,11 +139,17 @@ public class GameManagerSrc : MonoBehaviour
     }
     public void Shuffle()
     {
-        print("Shuffle");
+        Deck.Shuffle();
     }
     public void Check()
     {
-        print("Check");
+        List<Deck.CardType> nextCards = Deck.CheckForNextCards(3);
+        string res = "Слудующие карты: ";
+        for (int i = 0; i < nextCards.Count; i++)
+        {
+            res += nextCards[i].ToString() + ", ";
+        }
+        print(res);
     }
     public void Neutralization()
     {

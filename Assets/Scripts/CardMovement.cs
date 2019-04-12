@@ -21,7 +21,9 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     {
         offset = this.transform.position - MainCamera.ScreenToWorldPoint(eventData.position);
         DefaultParrent = transform.parent;
-        isDragable = DefaultParrent.GetComponent<DropPlace>()?.Type == FieldType.SELF_HAND && GameManager.IsPlayerTurn;
+        isDragable = DefaultParrent.GetComponent<DropPlace>()?.Type == FieldType.SELF_HAND 
+            && GameManager.IsPlayerTurn 
+            && eventData.pointerDrag.GetComponent<CardControl>().Card.isPlayable; 
         if (!isDragable)
             return;
         transform.SetParent(DefaultParrent.parent);

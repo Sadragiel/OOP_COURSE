@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace Assets.Scripts.CardEffects
 {
-    public abstract class Effect
+    public abstract class PreEffect
     {
-        public bool WillEndTheTurn;
         public abstract void Execute();
     }
 }
