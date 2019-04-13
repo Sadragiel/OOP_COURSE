@@ -68,22 +68,26 @@ namespace Assets.Scripts.Deck
             int res = 0;
             foreach (KeyValuePair<CardType, CardListInfo> entry in CardLists)
             {
-                GameManagerSrc.Instance.Test("Name " + entry.Value.CardTemplates.Name + ", Remained " + entry.Value.CardRemained.ToString());
                 res += entry.Value.CardRemained;
             }
-            GameManagerSrc.Instance.Test(res.ToString());
             return res;
         }
 
         public List<CardType> CheckForNextCards(int numOfCards)
         {
-            for (int i = 0; i < Math.Min(numOfCards, Remained()); i++)
+            for (int i = NextCards.Count; i < Math.Min(numOfCards, Remained()); i++)
             {
                 bool wasFound = false;
                 while (!wasFound)
                 {
                     CardType type = GetRandomType();
-                    if (CardLists[type].CardRemained > 0)
+                    int numOfCardsOfThatType = 0;
+                    foreach (CardType t in NextCards)
+                    {
+                        if (t == type)
+                            numOfCardsOfThatType++;
+                    }
+                    if (CardLists[type].CardRemained > numOfCardsOfThatType)
                     {
                         NextCards.Add(type);
                         wasFound = true;
@@ -140,7 +144,7 @@ namespace Assets.Scripts.Deck
                 if (CardList.CardRemained > 0)
                 {
                     CardList.CardRemained--;
-                    CardLists[type] = CardList;
+                    CardLists[type] = CardList; // CardList это просто копия CardLists[type], поэтому синхронизируем изменения
                     return CardList.ExistincCards.Count != 0 ? CardList.ExistincCards.Pop() : CardList.CardTemplates.Clone() as Card;
                 } 
             }

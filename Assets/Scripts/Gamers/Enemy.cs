@@ -27,8 +27,23 @@ namespace Assets.Scripts.Gamers
             cardGO.GetComponent<CardInfo>().HideCardInfo();
             yield return new WaitForSeconds(.9f);
             cardGO.GetComponent<CardMovement>().SetAsGotten(Hand);
-            
-
+            Card card = cardGO.GetComponent<CardControl>().Card;
+            if (card.PreEffect != null)
+            {
+                if (card.PreEffect.isNeutralization)
+                {
+                    this.NeutralizationCards.Add(cardGO);
+                }
+                else if (card.PreEffect.isExplosion)
+                {
+                    this.ExplosionCard = cardGO;
+                    card.PreEffect.Execute();
+                }
+                else
+                {
+                    card.PreEffect.Execute();
+                }
+            }
 
         }
 

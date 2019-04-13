@@ -26,6 +26,23 @@ namespace Assets.Scripts.Gamers
             yield return new WaitForSeconds(.9f);
             cardGO.GetComponent<CardMovement>().SetAsGotten(Hand);
             cardGO.GetComponent<CardInfo>().ShowCardInfo();
+            Card card = cardGO.GetComponent<CardControl>().Card;
+            if (card.PreEffect != null)
+            {
+                if (card.PreEffect.isNeutralization)
+                {
+                    this.NeutralizationCards.Add(cardGO);
+                }
+                else if (card.PreEffect.isExplosion)
+                {
+                    this.ExplosionCard = cardGO;
+                    card.PreEffect.Execute();
+                }
+                else
+                {
+                    card.PreEffect.Execute();
+                }
+            }
         }
 
         protected override IEnumerator PlayngCards()

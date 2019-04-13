@@ -8,6 +8,11 @@ namespace Assets.Scripts.CardEffects
 {
     class Neutralization: PreEffect
     {
+        public Neutralization()
+        {
+            this.isNeutralization = true;
+            this.isExplosion = false;
+        }
         public override void Execute()
         {
             GameManagerSrc.Instance.Neutralization();

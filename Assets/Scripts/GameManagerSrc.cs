@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using Assets.Scripts.Gamers;
 using Assets.Scripts.Deck;
+using UnityEngine.SceneManagement;
 
 public class Game
 {
@@ -34,6 +35,7 @@ public class GameManagerSrc : MonoBehaviour
     public GameObject CardPref;
     public Button EndFirstStepOfTurnBTN;
     public TextMeshProUGUI Timer;
+    public GameObject InfoScreen;
 
     //LocalData
     public Game CurrentGame;
@@ -70,7 +72,7 @@ public class GameManagerSrc : MonoBehaviour
 
     void Start()
     {
-        
+
         StartCoroutine(StartManipulation());
     }
 
@@ -112,7 +114,7 @@ public class GameManagerSrc : MonoBehaviour
         CardControl cardC = cardGO.GetComponent<CardControl>();
         cardC.Init(card, true);
         cardC.Movement.GettingProcess(Hand);
-        
+
         return cardGO;
     }
 
@@ -154,18 +156,72 @@ public class GameManagerSrc : MonoBehaviour
         }
         print(res);
     }
+
     public void Neutralization()
     {
-        print("Neutralization");
+        InfoScreen.SetActive(false);
+        GameObject usedCard = CurrentPlayer.NeutralizationCards[0];
+        CurrentPlayer.NeutralizationCards.RemoveAt(0);
+        Destroy(usedCard);
+        GameObject explosionCard = CurrentPlayer.ExplosionCard;
+        CurrentPlayer.ExplosionCard = null;
+        Destroy(explosionCard);
+        ChangeTurn();
     }
     public void Explosion()
     {
-        print("Explosion");
+        StopAllCoroutines();
+        InfoScreen.SetActive(true);
+        InfoScr infoScr = InfoScreen.GetComponent<InfoScr>();
+        infoScr.ActionButtonActive(CurrentPlayer.HasNeutralization());
+        infoScr.SetCard(CurrentPlayer.ExplosionCard);
+        if (!IsPlayerTurn)
+            infoScr.AcceptButtonActive();
+        infoScr.SetMessage(
+            "The bomb was pulled out of the deck!\n"
+            +(IsPlayerTurn ? "You have " : "Your Opponent has ")
+            +(CurrentPlayer.HasNeutralization() ? "" : "not ")
+            + "Neutralization Card"
+            );
+
+    }
+
+    public void CollapsInfoScreen()
+    {
+        InfoScreen.SetActive(false);
+        if (CurrentPlayer.ExplosionCard != null)
+        {
+            if (CurrentPlayer.HasNeutralization())
+                Neutralization();
+            else
+            {
+                foreach (Transform child in CurrentPlayer.Hand)
+                {
+                    Destroy(child.gameObject);
+                }
+                Gamers.RemoveAt(CurrentPlayerIndex);
+                if (Gamers.Count == 1)
+                {
+                    Win();
+                    return;
+                }
+                ChangeTurn();
+            }
+            
+        }
+    }
+
+    public void Win()
+    {
+        InfoScreen.SetActive(true);
+        InfoScr infoScr = InfoScreen.GetComponent<InfoScr>();
+        infoScr.SinglMessage("You Win!\nReturn to Menu");
+        infoScr.ActionButtonActive(false);
     }
 
     private IEnumerator ChangingTurn()
     {
-        while(NumberOfCardToGet-- > 0)
+        while (NumberOfCardToGet-- > 0)
             yield return CurrentPlayer.GetCardToHand(CurrentGame.Deck);
         NumberOfCurrentPlayer++;
         NumberOfCardToGet = 1;
@@ -186,5 +242,10 @@ public class GameManagerSrc : MonoBehaviour
     public void Test(string s)
     {
         print(s);
+    }
+
+    public void MainMenu()
+    {
+        SceneManager.LoadScene("MainMenu", LoadSceneMode.Additive);
     }
 }

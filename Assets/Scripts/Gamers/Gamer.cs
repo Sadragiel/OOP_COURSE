@@ -6,11 +6,13 @@ namespace Assets.Scripts.Gamers
 {
     public abstract class Gamer
     {
-        public List<Card> Cards;
+        public List<GameObject> NeutralizationCards;
+        public GameObject ExplosionCard = null;
         public Gamer(Transform Hand, GameManagerSrc GameManager)
         {
             this.Hand = Hand;
             this.GameManager = GameManager;
+            this.NeutralizationCards = new List<GameObject>();
         }
         protected GameManagerSrc GameManager;
         public Transform Hand;
@@ -22,10 +24,16 @@ namespace Assets.Scripts.Gamers
             GameManager.ChangeTurn();
         }
 
-        //Start oc Coroutine
+        //Start of Coroutine
         public void Turn()
         {
             GameManager.StartCoroutine(PlayngCards());
         }
+
+        public bool HasNeutralization()
+        {
+            return this.NeutralizationCards.Count != 0;
+        }
+
     }
 }
