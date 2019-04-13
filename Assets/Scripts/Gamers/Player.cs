@@ -7,20 +7,24 @@ namespace Assets.Scripts.Gamers
     public class Player : Gamer
     {
         public Player(Transform Hand, GameManagerSrc GameManager) : base(Hand, GameManager) { }
-        public override void GetCardToHand(Deck.Deck Deck)
+        public override IEnumerator GetCardToHand(Deck.Deck Deck)
         {
-            if (Deck.IsEmpty())
-                return;
-            Card card = Deck.GetCard();
+            if (!Deck.IsEmpty())
+            {
+                Card card = Deck.GetCard();
 
-            //TODO EXPLOSION
+                //TODO EXPLOSION
 
-            GetCardToHand(card);
+                yield return GetCardToHand(card);
+            }
         }
 
-        public override void GetCardToHand(Card Card)
+        public override IEnumerator GetCardToHand(Card Card)
         {
             GameObject cardGO = GameManager.CreateCard(Card, Hand);
+            cardGO.GetComponent<CardInfo>().HideCardInfo();
+            yield return new WaitForSeconds(.9f);
+            cardGO.GetComponent<CardMovement>().SetAsGotten(Hand);
             cardGO.GetComponent<CardInfo>().ShowCardInfo();
         }
 

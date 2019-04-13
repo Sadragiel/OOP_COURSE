@@ -55,6 +55,7 @@ namespace Assets.Scripts.Deck
             bool res = true;
             foreach (KeyValuePair<CardType, CardListInfo> entry in CardLists)
             {
+                
                 res = res && entry.Value.CardRemained <= 0;
                 if (!res)
                     return res;
@@ -67,8 +68,10 @@ namespace Assets.Scripts.Deck
             int res = 0;
             foreach (KeyValuePair<CardType, CardListInfo> entry in CardLists)
             {
+                GameManagerSrc.Instance.Test("Name " + entry.Value.CardTemplates.Name + ", Remained " + entry.Value.CardRemained.ToString());
                 res += entry.Value.CardRemained;
             }
+            GameManagerSrc.Instance.Test(res.ToString());
             return res;
         }
 
@@ -114,6 +117,10 @@ namespace Assets.Scripts.Deck
 
         public Card GetCard()
         {
+            if (this.Remained() == 0)
+            {
+                return null;
+            }
             Card card = null;
             if (NextCards.Count != 0)
             {
@@ -133,6 +140,7 @@ namespace Assets.Scripts.Deck
                 if (CardList.CardRemained > 0)
                 {
                     CardList.CardRemained--;
+                    CardLists[type] = CardList;
                     return CardList.ExistincCards.Count != 0 ? CardList.ExistincCards.Pop() : CardList.CardTemplates.Clone() as Card;
                 } 
             }

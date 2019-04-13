@@ -70,6 +70,13 @@ public class GameManagerSrc : MonoBehaviour
 
     void Start()
     {
+        
+        StartCoroutine(StartManipulation());
+    }
+
+    IEnumerator StartManipulation()
+    {
+        EndFirstStepOfTurnBTN.interactable = false;
         if (Hands.Length < 2)
             throw new System.Exception("No players exception");
         CurrentGame = new Game();
@@ -83,33 +90,29 @@ public class GameManagerSrc : MonoBehaviour
         {
             Gamers.Add(new Enemy(Hands[i], this));
         }
+        foreach (Gamer gamer in Gamers)
+        {
+            for (int i = 0; i < Game.StartCardCount; i++)
+                yield return gamer.GetCardToHand(Deck);
 
-        StartCardManipulation();
-        
+        }
+        Deck.FillByExtraCards();
+        foreach (Gamer gamer in Gamers)
+        {
+            yield return gamer.GetCardToHand(Deck.GetCard(Deck.CardType.NEUTRALIZATION));
+        }
         EndFirstStepOfTurnBTN.interactable = true;
 
         CurrentPlayer.Turn();
     }
 
-    void StartCardManipulation()
-    {
-        foreach (Gamer gamer in Gamers)
-        {
-            for (int i = 0; i < Game.StartCardCount; i++)
-                gamer.GetCardToHand(Deck);
-        }
-        Deck.FillByExtraCards();
-        foreach (Gamer gamer in Gamers)
-        {
-            gamer.GetCardToHand(Deck.GetCard(Deck.CardType.NEUTRALIZATION));
-        }
-    }
-
     public GameObject CreateCard(Card card, Transform Hand)
     {
-        GameObject cardGO = Instantiate(CardPref, Hand, false);
+        GameObject cardGO = Instantiate(CardPref, DeckPlace, false);
         CardControl cardC = cardGO.GetComponent<CardControl>();
         cardC.Init(card, true);
+        cardC.Movement.GettingProcess(Hand);
+        
         return cardGO;
     }
 
@@ -160,19 +163,22 @@ public class GameManagerSrc : MonoBehaviour
         print("Explosion");
     }
 
+    private IEnumerator ChangingTurn()
+    {
+        while(NumberOfCardToGet-- > 0)
+            yield return CurrentPlayer.GetCardToHand(CurrentGame.Deck);
+        NumberOfCurrentPlayer++;
+        NumberOfCardToGet = 1;
+        SwitchBTN();
+        CurrentPlayer.Turn();
+    }
 
     public void ChangeTurn()
     {
         if (NumberOfCardToGet < 0)
             NumberOfCardToGet = 1;
-        print(string.Format("GameManager report: Ходил Игрок номер {0}; Количество карт к взятию {1}", CurrentPlayerIndex, NumberOfCardToGet));
         StopAllCoroutines();
-        while(NumberOfCardToGet-- > 0)
-            CurrentPlayer.GetCardToHand(CurrentGame.Deck);
-        NumberOfCurrentPlayer++;
-        NumberOfCardToGet = 1;
-        SwitchBTN();
-        CurrentPlayer.Turn();
+        StartCoroutine(ChangingTurn());
     }
 
 

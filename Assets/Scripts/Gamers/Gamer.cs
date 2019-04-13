@@ -14,8 +14,8 @@ namespace Assets.Scripts.Gamers
         }
         protected GameManagerSrc GameManager;
         public Transform Hand;
-        public abstract void GetCardToHand(Deck.Deck Deck);
-        public abstract void GetCardToHand(Card Card);
+        public abstract IEnumerator GetCardToHand(Deck.Deck Deck);
+        public abstract IEnumerator GetCardToHand(Card Card);
         protected abstract IEnumerator PlayngCards();               //Coroutine
         protected void EndTurn()
         {
