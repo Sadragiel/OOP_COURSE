@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 namespace Assets.Scripts.Gamers
 {
     public class Enemy : Gamer
     {
         public Enemy(Transform Hand, GameManagerSrc GameManager) : base(Hand, GameManager) { }
+
+        public List<Deck.Deck.CardType> Types;
+
         public override IEnumerator GetCardToHand(Deck.Deck Deck)
         {
             if (!Deck.IsEmpty())

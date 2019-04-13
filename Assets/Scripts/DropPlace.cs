@@ -31,7 +31,7 @@ public class DropPlace : MonoBehaviour, IDropHandler
             if (Type == FieldType.DISCARDED_FIELD)
             {
                 if(this.gameObject.transform.childCount != 0)
-                    Destroy(this.gameObject.transform.GetChild(0).gameObject);
+                    GameManager.Deck.ReturnToTheDeck(this.gameObject.transform.GetChild(0).gameObject);
                 cardControl.Card.Effect.Execute();
             }
         }

@@ -4,11 +4,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Assets.Scripts.Deck
 {
     public class Deck
     {
+        //Constances
+        const string AttackName = "ATTACK";
+        const string SkipName = "SKIP";
+        const string ShuffleName = "SHUFFLE";
+        const string CheckName = "CHECK";
+        const string ExplosionName = "EXPLOSION";
+        const string NeutralizationName = "NEUTRALIZATION";
+
         private struct CardListInfo
         {
             public Stack<Card> ExistincCards;    //Flywaight: To Get Card From Discard;
@@ -28,7 +37,7 @@ namespace Assets.Scripts.Deck
         Dictionary<CardType, CardListInfo> CardLists;
         List<CardType> NextCards;
         CardCreator Creator;
-        Random _Random = new Random(Environment.TickCount);
+        
 
         public Deck(int numOfPlayers)
         {
@@ -36,16 +45,16 @@ namespace Assets.Scripts.Deck
             Creator = new CardCreator();
             CardLists = new Dictionary<CardType, CardListInfo>() {
                 { CardType.ATTACK,
-                    new CardListInfo(Creator.Create("ATTACK", "Sprites/Jeanne", true, new Attack()), 4)
+                    new CardListInfo(Creator.Create(AttackName, "Sprites/Jeanne", true, new Attack()), 4)
                 },
                 { CardType.SKIP,
-                    new CardListInfo(Creator.Create("SKIP", "Sprites/Atalanta", true, new SkipTurn()), 4)
+                    new CardListInfo(Creator.Create(SkipName, "Sprites/Atalanta", true, new SkipTurn()), 4)
                 },
                 { CardType.SHUFFLE,
-                    new CardListInfo(Creator.Create("SHUFFLE", "Sprites/Kiyohime", true, new Shuffle()), 4)
+                    new CardListInfo(Creator.Create(ShuffleName, "Sprites/Kiyohime", true, new Shuffle()), 4)
                 },
                 { CardType.CHECK,
-                    new CardListInfo(Creator.Create("CHECK", "Sprites/Mash", true, new Check()), 4)
+                    new CardListInfo(Creator.Create(CheckName, "Sprites/Mash", true, new Check()), 4)
                 },
             };
         }
@@ -108,13 +117,14 @@ namespace Assets.Scripts.Deck
         public void FillByExtraCards()
         {
             CardLists.Add(CardType.EXPLOSION,
-                    new CardListInfo(Creator.Create("EXPLOSION", "Sprites/Hassaan", false, null, new Explosion()), 4));
+                    new CardListInfo(Creator.Create(ExplosionName, "Sprites/Hassaan", false, null, new Explosion()), 4));
             CardLists.Add(CardType.NEUTRALIZATION,
-                    new CardListInfo(Creator.Create("NEUTRALIZATION", "Sprites/Merlin", false, null, new Neutralization()), 4));
+                    new CardListInfo(Creator.Create(NeutralizationName, "Sprites/Merlin", false, null, new Neutralization()), 4));
         }
 
         CardType GetRandomType()
         {
+            System.Random _Random = new System.Random(Environment.TickCount);
             Array enumValues = Enum.GetValues(typeof(CardType));
             return (CardType)enumValues.GetValue(_Random.Next(enumValues.Length));
         }
@@ -144,12 +154,37 @@ namespace Assets.Scripts.Deck
                 if (CardList.CardRemained > 0)
                 {
                     CardList.CardRemained--;
+                    if (CardList.ExistincCards.Count != 0)
+                    {
+                        GameManagerSrc.Instance.Test("Added from Stack");
+                    }
+                    Card resultCard =  CardList.ExistincCards.Count != 0 ? CardList.ExistincCards.Pop() : CardList.CardTemplates.Clone() as Card;
                     CardLists[type] = CardList; // CardList это просто копия CardLists[type], поэтому синхронизируем изменения
-                    return CardList.ExistincCards.Count != 0 ? CardList.ExistincCards.Pop() : CardList.CardTemplates.Clone() as Card;
+                    return resultCard;
                 } 
             }
             catch (Exception) {  }
             return null;
+        }
+
+        CardType GetType(Card card)
+        {
+            return card.Name == AttackName ? CardType.ATTACK
+                : card.Name == SkipName ? CardType.SKIP
+                : card.Name == ShuffleName ? CardType.SHUFFLE
+                : card.Name == CheckName ? CardType.CHECK
+                : card.Name == ExplosionName ? CardType.EXPLOSION
+                : CardType.NEUTRALIZATION;
+        }
+
+        public void ReturnToTheDeck(GameObject cardGO)
+        {
+            Card card = cardGO.GetComponent<CardControl>().Card;
+            GameManagerSrc.Instance.AddToDeckStorage(cardGO);
+            CardType type = GetType(card);
+            CardListInfo cl = CardLists[type];
+            cl.ExistincCards.Push(card);
+            CardLists[type] = cl;
         }
     }
 }

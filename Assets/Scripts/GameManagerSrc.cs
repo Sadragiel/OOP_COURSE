@@ -36,6 +36,7 @@ public class GameManagerSrc : MonoBehaviour
     public Button EndFirstStepOfTurnBTN;
     public TextMeshProUGUI Timer;
     public GameObject InfoScreen;
+    public Transform DeckStorage;
 
     //LocalData
     public Game CurrentGame;
@@ -110,12 +111,38 @@ public class GameManagerSrc : MonoBehaviour
 
     public GameObject CreateCard(Card card, Transform Hand)
     {
-        GameObject cardGO = Instantiate(CardPref, DeckPlace, false);
+        print("GameStorage length = " + DeckStorage.childCount);
+        GameObject cardGO = GetFromDeckStorage(card);
+        if (cardGO == null)
+        {
+            cardGO = Instantiate(CardPref, DeckPlace, false);
+        }
+        else
+        {
+            cardGO.transform.SetParent(DeckPlace);
+        }
         CardControl cardC = cardGO.GetComponent<CardControl>();
         cardC.Init(card, true);
         cardC.Movement.GettingProcess(Hand);
 
         return cardGO;
+    }
+
+    public void AddToDeckStorage(GameObject CardGO)
+    {
+        CardGO.transform.SetParent(DeckStorage);
+    }
+
+    public GameObject GetFromDeckStorage(Card card)
+    {
+        foreach (Transform child in DeckStorage)
+        {
+            if (child.gameObject.GetComponent<CardControl>().Card.Name == card.Name)
+            {
+                return child.gameObject;
+            }
+        }
+        return null;
     }
 
     public void SwitchBTN()
@@ -149,12 +176,21 @@ public class GameManagerSrc : MonoBehaviour
     public void Check()
     {
         List<Deck.CardType> nextCards = Deck.CheckForNextCards(3);
-        string res = "Слудующие карты: ";
+        string res = "Next Cards: ";
         for (int i = 0; i < nextCards.Count; i++)
         {
             res += nextCards[i].ToString() + ", ";
         }
         print(res);
+        if (IsPlayerTurn)
+        {
+            InfoScreen.SetActive(true);
+            InfoScreen.GetComponent<InfoScr>().SinglMessage(res);
+        }
+        else
+        {
+            (CurrentPlayer as Enemy).Types = nextCards;
+        }
     }
 
     public void Neutralization()
@@ -162,10 +198,10 @@ public class GameManagerSrc : MonoBehaviour
         InfoScreen.SetActive(false);
         GameObject usedCard = CurrentPlayer.NeutralizationCards[0];
         CurrentPlayer.NeutralizationCards.RemoveAt(0);
-        Destroy(usedCard);
+        Deck.ReturnToTheDeck(usedCard);
         GameObject explosionCard = CurrentPlayer.ExplosionCard;
         CurrentPlayer.ExplosionCard = null;
-        Destroy(explosionCard);
+        Deck.ReturnToTheDeck(explosionCard);
         ChangeTurn();
     }
     public void Explosion()
@@ -197,7 +233,7 @@ public class GameManagerSrc : MonoBehaviour
             {
                 foreach (Transform child in CurrentPlayer.Hand)
                 {
-                    Destroy(child.gameObject);
+                    Deck.ReturnToTheDeck(child.gameObject);
                 }
                 Gamers.RemoveAt(CurrentPlayerIndex);
                 if (Gamers.Count == 1)
@@ -207,7 +243,6 @@ public class GameManagerSrc : MonoBehaviour
                 }
                 ChangeTurn();
             }
-            
         }
     }
 
