@@ -17,7 +17,7 @@ public class Card : ICloneable
     public Sprite Logo;
     public bool isPlayable;
 
-    //Bridge+Comand
+    //Comand
     public Effect Effect;
     public PreEffect PreEffect;
 

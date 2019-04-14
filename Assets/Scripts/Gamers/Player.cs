@@ -12,9 +12,6 @@ namespace Assets.Scripts.Gamers
             if (!Deck.IsEmpty())
             {
                 Card card = Deck.GetCard();
-
-                //TODO EXPLOSION
-
                 yield return GetCardToHand(card);
             }
         }

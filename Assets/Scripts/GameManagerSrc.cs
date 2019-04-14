@@ -19,9 +19,9 @@ public class Game
     }
     //Non-static
     public Deck Deck;
-    public Game()
+    public Game(int numOfPlayers)
     {
-         Deck = new Deck(2);
+         Deck = new Deck(numOfPlayers);
     }
 }
 
@@ -82,7 +82,7 @@ public class GameManagerSrc : MonoBehaviour
         EndFirstStepOfTurnBTN.interactable = false;
         if (Hands.Length < 2)
             throw new System.Exception("No players exception");
-        CurrentGame = new Game();
+        CurrentGame = new Game(Hands.Length);
         NumberOfCurrentPlayer = 0;
         //Players
         Gamers = new List<Gamer>()
@@ -111,20 +111,24 @@ public class GameManagerSrc : MonoBehaviour
 
     public GameObject CreateCard(Card card, Transform Hand)
     {
-        print("GameStorage length = " + DeckStorage.childCount);
+        GameObject cardGO = CreateCardForPlace(card, Hand);
+        cardGO.GetComponent<CardControl>().Movement.GettingProcess(Hand);
+        return cardGO;
+    }
+
+    private GameObject CreateCardForPlace(Card card, Transform Place)
+    {
         GameObject cardGO = GetFromDeckStorage(card);
         if (cardGO == null)
         {
-            cardGO = Instantiate(CardPref, DeckPlace, false);
+            cardGO = Instantiate(CardPref, Place, false);
         }
         else
         {
-            cardGO.transform.SetParent(DeckPlace);
+            cardGO.transform.SetParent(Place);
         }
         CardControl cardC = cardGO.GetComponent<CardControl>();
         cardC.Init(card, true);
-        cardC.Movement.GettingProcess(Hand);
-
         return cardGO;
     }
 
@@ -147,7 +151,7 @@ public class GameManagerSrc : MonoBehaviour
 
     public void SwitchBTN()
     {
-        EndFirstStepOfTurnBTN.interactable = !EndFirstStepOfTurnBTN.interactable;
+        EndFirstStepOfTurnBTN.interactable = IsPlayerTurn;
     }
 
     public void SetTimerValue(int value)
@@ -184,18 +188,23 @@ public class GameManagerSrc : MonoBehaviour
         print(res);
         if (IsPlayerTurn)
         {
+            InfoScr info = InfoScreen.GetComponent<InfoScr>();
+            info.SinglMessage(res);
+            foreach (Deck.CardType type in nextCards)
+                info.SetCard(CreateCardForPlace(Deck.GetCard(type), info.CardPlace));
             InfoScreen.SetActive(true);
-            InfoScreen.GetComponent<InfoScr>().SinglMessage(res);
         }
         else
         {
-            (CurrentPlayer as Enemy).Types = nextCards;
+            (CurrentPlayer as Enemy).NextCardTypes = nextCards;
         }
     }
 
     public void Neutralization()
     {
+        
         InfoScreen.SetActive(false);
+        InfoScreen.GetComponent<InfoScr>().SinglMessage("");
         GameObject usedCard = CurrentPlayer.NeutralizationCards[0];
         CurrentPlayer.NeutralizationCards.RemoveAt(0);
         Deck.ReturnToTheDeck(usedCard);
@@ -216,27 +225,39 @@ public class GameManagerSrc : MonoBehaviour
         infoScr.SetMessage(
             "The bomb was pulled out of the deck!\n"
             +(IsPlayerTurn ? "You have " : "Your Opponent has ")
-            +(CurrentPlayer.HasNeutralization() ? "" : "not ")
+            +(CurrentPlayer.HasNeutralization() ? "" : "no ")
             + "Neutralization Card"
             );
 
     }
 
+    private int NumOfPlayerRemained()
+    {
+        int res = 0;
+        foreach (Gamer gamer in Gamers)
+            if (gamer != null)
+                res++;
+        return res;
+    }
+
     public void CollapsInfoScreen()
     {
         InfoScreen.SetActive(false);
+        InfoScreen.GetComponent<InfoScr>().SinglMessage("");
         if (CurrentPlayer.ExplosionCard != null)
         {
             if (CurrentPlayer.HasNeutralization())
                 Neutralization();
             else
             {
-                foreach (Transform child in CurrentPlayer.Hand)
+                Deck.WasExplosion();
+                while (CurrentPlayer.Hand.childCount != 0)
                 {
-                    Deck.ReturnToTheDeck(child.gameObject);
+                    Deck.ReturnToTheDeck(CurrentPlayer.Hand.GetChild(0).gameObject);
                 }
-                Gamers.RemoveAt(CurrentPlayerIndex);
-                if (Gamers.Count == 1)
+                NumberOfCardToGet = 0;
+                Gamers[CurrentPlayerIndex] = null;
+                if (NumOfPlayerRemained() == 1)
                 {
                     Win();
                     return;
@@ -258,7 +279,10 @@ public class GameManagerSrc : MonoBehaviour
     {
         while (NumberOfCardToGet-- > 0)
             yield return CurrentPlayer.GetCardToHand(CurrentGame.Deck);
-        NumberOfCurrentPlayer++;
+        do
+        {
+            NumberOfCurrentPlayer++;
+        } while (CurrentPlayer == null);
         NumberOfCardToGet = 1;
         SwitchBTN();
         CurrentPlayer.Turn();

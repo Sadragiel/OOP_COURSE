@@ -1,28 +1,96 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Assets.Scripts.Gamers.EnemyThinkingBlock;
 
 namespace Assets.Scripts.Gamers
 {
+
+    
+
+    //First Block, that can change State of EnemyPlayer
+    public class CheckingBlockOfChain : ThinkingBlockOfChain
+    {
+
+        public override int GetIndexOfCardToPlay()
+        {
+            if (this.self.NextCardTypes.Count != 0)
+            {
+                if (this.self.NextCardTypes[0] == Deck.Deck.CardType.EXPLOSION)
+                {
+                    //Change state to Aggression;
+                }
+                else
+                {
+                    //Change state to Normal;
+                }
+            }
+            else
+            {
+                
+            }
+            int index = self.State.TryToGetIndexOfCard(type);
+            return index != -1 ? index : NextBlock.GetIndexOfCardToPlay();
+        }
+    }
+
+    public abstract class State
+    {
+        Enemy self;
+        
+
+        public int TryToGetIndexOfCard(Deck.Deck.CardType type)
+        {
+            foreach (Transform cardTransform in this.self.Hand)
+            {
+                if (GameManagerSrc.Instance.Deck.GetType(cardTransform.gameObject.GetComponent<CardControl>().Card) == type)
+                    return cardTransform.GetSiblingIndex();
+            }
+            return -1;
+        }
+
+
+    }
+
+
+    public class StateSet
+    {
+        public enum StateType
+        {
+            NORMAL, OVERFLOWED
+        }
+        private State normal;
+        private State overflowed;
+        public State Normal
+        {
+            get => this.normal;
+        }
+        public State Overflowed
+        {
+            get => this.overflowed;
+        }
+        public StateSet(Enemy enemy)
+        {
+           //this.overflowed = new OverflowedState(server);
+        }
+    }
+
     public class Enemy : Gamer
     {
+        public State State;
+        public StateSet StateSet;
+
         public Enemy(Transform Hand, GameManagerSrc GameManager) : base(Hand, GameManager) { }
 
-        public List<Deck.Deck.CardType> Types;
+        public List<Deck.Deck.CardType> NextCardTypes;
 
         public override IEnumerator GetCardToHand(Deck.Deck Deck)
         {
             if (!Deck.IsEmpty())
             {
                 Card card = Deck.GetCard();
-
-                //TODO EXPLOSION
-
                 yield return GetCardToHand(card);
             }
-
-            
         }
 
         public override IEnumerator GetCardToHand(Card Card)
@@ -91,6 +159,24 @@ namespace Assets.Scripts.Gamers
             }
             yield return new WaitForSeconds(2);
             EndTurn();
+        }
+
+        public void ChangeState(StateSet.StateType newState)
+        {
+            switch (newState)
+            {
+                case StateSet.StateType.NORMAL:
+                    {
+                        this.State = this.StateSet.Normal;
+                    }
+                    break;
+                case StateSet.StateType.OVERFLOWED:
+                    {
+                        this.State = this.StateSet.Overflowed;
+                    }
+                    break;
+
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ namespace Assets.Scripts.Deck
         const string ExplosionName = "EXPLOSION";
         const string NeutralizationName = "NEUTRALIZATION";
 
+        int NumOfPlayers;
         private struct CardListInfo
         {
             public Stack<Card> ExistincCards;    //Flywaight: To Get Card From Discard;
@@ -39,22 +40,23 @@ namespace Assets.Scripts.Deck
         CardCreator Creator;
         
 
-        public Deck(int numOfPlayers)
+        public Deck(int NumOfPlayers)
         {
+            this.NumOfPlayers = NumOfPlayers;
             NextCards = new List<CardType>();
             Creator = new CardCreator();
             CardLists = new Dictionary<CardType, CardListInfo>() {
                 { CardType.ATTACK,
-                    new CardListInfo(Creator.Create(AttackName, "Sprites/Jeanne", true, new Attack()), 4)
+                    new CardListInfo(Creator.Create(AttackName, "Sprites/Jeanne", true, new Attack()), 5)
                 },
                 { CardType.SKIP,
-                    new CardListInfo(Creator.Create(SkipName, "Sprites/Atalanta", true, new SkipTurn()), 4)
+                    new CardListInfo(Creator.Create(SkipName, "Sprites/Atalanta", true, new SkipTurn()), 5)
                 },
                 { CardType.SHUFFLE,
-                    new CardListInfo(Creator.Create(ShuffleName, "Sprites/Kiyohime", true, new Shuffle()), 4)
+                    new CardListInfo(Creator.Create(ShuffleName, "Sprites/Kiyohime", true, new Shuffle()), 5)
                 },
                 { CardType.CHECK,
-                    new CardListInfo(Creator.Create(CheckName, "Sprites/Mash", true, new Check()), 4)
+                    new CardListInfo(Creator.Create(CheckName, "Sprites/Mash", true, new Check()), 5)
                 },
             };
         }
@@ -117,9 +119,9 @@ namespace Assets.Scripts.Deck
         public void FillByExtraCards()
         {
             CardLists.Add(CardType.EXPLOSION,
-                    new CardListInfo(Creator.Create(ExplosionName, "Sprites/Hassaan", false, null, new Explosion()), 4));
+                    new CardListInfo(Creator.Create(ExplosionName, "Sprites/Hassaan", false, null, new Explosion()), NumOfPlayers - 1));
             CardLists.Add(CardType.NEUTRALIZATION,
-                    new CardListInfo(Creator.Create(NeutralizationName, "Sprites/Merlin", false, null, new Neutralization()), 4));
+                    new CardListInfo(Creator.Create(NeutralizationName, "Sprites/Merlin", false, null, new Neutralization()), 8));
         }
 
         CardType GetRandomType()
@@ -153,13 +155,15 @@ namespace Assets.Scripts.Deck
                 
                 if (CardList.CardRemained > 0)
                 {
-                    CardList.CardRemained--;
-                    if (CardList.ExistincCards.Count != 0)
-                    {
-                        GameManagerSrc.Instance.Test("Added from Stack");
-                    }
+                    if(type != CardType.EXPLOSION)
+                        CardList.CardRemained--;
+                    bool test = CardList.ExistincCards.Count != 0;
                     Card resultCard =  CardList.ExistincCards.Count != 0 ? CardList.ExistincCards.Pop() : CardList.CardTemplates.Clone() as Card;
                     CardLists[type] = CardList; // CardList это просто копия CardLists[type], поэтому синхронизируем изменения
+                    if (test)
+                    {
+                        GameManagerSrc.Instance.Test("Added from Stack: " + resultCard.Name);
+                    }
                     return resultCard;
                 } 
             }
@@ -167,7 +171,7 @@ namespace Assets.Scripts.Deck
             return null;
         }
 
-        CardType GetType(Card card)
+        public CardType GetType(Card card)
         {
             return card.Name == AttackName ? CardType.ATTACK
                 : card.Name == SkipName ? CardType.SKIP
@@ -185,6 +189,15 @@ namespace Assets.Scripts.Deck
             CardListInfo cl = CardLists[type];
             cl.ExistincCards.Push(card);
             CardLists[type] = cl;
+        }
+
+        public void WasExplosion()
+        {
+            CardListInfo cl = this.CardLists[CardType.EXPLOSION];
+            GameManagerSrc.Instance.Test("Было " + cl.CardRemained);
+            cl.CardRemained--;
+            this.CardLists[CardType.EXPLOSION] = cl;
+            GameManagerSrc.Instance.Test("Стало " + cl.CardRemained);
         }
     }
 }

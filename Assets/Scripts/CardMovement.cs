@@ -50,11 +50,13 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public void SetAsGotten(Transform hand)
     {
+        transform.SetPositionAndRotation(transform.position, hand.rotation);
         transform.SetParent(hand);
     }
 
     public void GettingProcess(Transform hand)
     {
+
         transform.DOMove(GameManager.DeckPlace.position, 0);
         transform.SetParent(GameObject.Find("Canvas").transform);
         if(GameManager.Deck.IsEmpty()
@@ -65,6 +67,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public void SetAsDiscarded()
     {
+        transform.SetPositionAndRotation(transform.position, GameManager.DiscerdedPlace.rotation);
         if (GameManager.DiscerdedPlace.gameObject.transform.childCount != 0)
             GameManager.Deck.ReturnToTheDeck(GameManager.DiscerdedPlace.gameObject.transform.GetChild(0).gameObject);
         transform.SetParent(GameManager.DiscerdedPlace);

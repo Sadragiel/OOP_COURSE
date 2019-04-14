@@ -16,6 +16,8 @@ public class InfoScr : MonoBehaviour
 
     public void SetCard(GameObject CardGO)
     {
+        
+        CardGO.transform.SetPositionAndRotation(CardGO.transform.position, CardPlace.rotation);
         CardGO.GetComponent<CardInfo>().ShowCardInfo();
         CardGO.transform.SetParent(CardPlace);
     }
@@ -42,8 +44,8 @@ public class InfoScr : MonoBehaviour
 
     public void SinglMessage(string message)
     {
-        if (CardPlace.childCount != 0)
-            Destroy(CardPlace.GetChild(0).gameObject);
+        while (CardPlace.childCount != 0)
+            GameManagerSrc.Instance.Deck.ReturnToTheDeck(CardPlace.GetChild(0).gameObject);
         AcceptButtonActive();
         SetMessage(message);
     }
