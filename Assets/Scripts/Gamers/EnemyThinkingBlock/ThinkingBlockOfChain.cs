@@ -10,12 +10,17 @@ namespace Assets.Scripts.Gamers.EnemyThinkingBlock
     {
         public Deck.Deck.CardType type;
         public Enemy self;
-        public ThinkingBlockOfChain NextBlock;
+        public ThinkingBlockOfChain NextBlock = null;
 
-        public virtual int GetIndexOfCardToPlay()
+        public ThinkingBlockOfChain(Deck.Deck.CardType type)
+        {
+            this.type = type;
+        }
+
+        public virtual int? GetIndexOfCardToPlay()
         {
             int index = self.State.TryToGetIndexOfCard(type);
-            return index != -1 ? index : NextBlock.GetIndexOfCardToPlay();
+            return index != -1 ? index : NextBlock?.GetIndexOfCardToPlay();
         }
     }
 }

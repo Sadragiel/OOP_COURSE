@@ -63,6 +63,11 @@ public class GameManagerSrc : MonoBehaviour
         get => CurrentGame.Deck;
     }
 
+    public int NumberOfCardToGetByMe
+    {
+        get => NumberOfCardToGet;
+    }
+
     //Singltone
     public static GameManagerSrc Instance;
     private void Awake()

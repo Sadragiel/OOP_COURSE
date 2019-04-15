@@ -6,38 +6,57 @@ using Assets.Scripts.Gamers.EnemyThinkingBlock;
 namespace Assets.Scripts.Gamers
 {
 
-    
 
-    //First Block, that can change State of EnemyPlayer
+
+    //First Block of NormalState, that can change State of EnemyPlayer
     public class CheckingBlockOfChain : ThinkingBlockOfChain
     {
+        public CheckingBlockOfChain(Deck.Deck.CardType type) : base(type)
+        {
+            if (type != Deck.Deck.CardType.CHECK)
+                throw new System.Exception("Type Conflict! To Create CheckingBlockOfChain used " + type.ToString() + " type");
+        }
 
-        public override int GetIndexOfCardToPlay()
+        bool hasExplosion(int numOfCards)
+        {
+            for (int i = 0; i < numOfCards && i < this.self.NextCardTypes.Count; i++)
+                if (this.self.NextCardTypes[i] == Deck.Deck.CardType.EXPLOSION)
+                    return true;
+            return false;
+        }
+
+        public override int? GetIndexOfCardToPlay()
         {
             if (this.self.NextCardTypes.Count != 0)
             {
-                if (this.self.NextCardTypes[0] == Deck.Deck.CardType.EXPLOSION)
+                if (hasExplosion(GameManagerSrc.Instance.NumberOfCardToGetByMe))
                 {
-                    //Change state to Aggression;
+                    //Change state to Aggression or Gambling;
+                    return null;
                 }
-                else
+                else if (this.self.NextCardTypes.Count >= GameManagerSrc.Instance.NumberOfCardToGetByMe)
                 {
-                    //Change state to Normal;
+                    //Signal to getCard
+                    return null;
                 }
             }
-            else
-            {
-                
-            }
-            int index = self.State.TryToGetIndexOfCard(type);
-            return index != -1 ? index : NextBlock.GetIndexOfCardToPlay();
+            int? index = self.State.TryToGetIndexOfCard(type);
+            return index != -1 ? index : null;
         }
     }
+
+
 
     public abstract class State
     {
         Enemy self;
-        
+
+        protected ThinkingBlockOfChain HeadOfThinkingChain;
+
+        public ThinkingBlockOfChain Head
+        {
+            get => HeadOfThinkingChain;
+        }
 
         public int TryToGetIndexOfCard(Deck.Deck.CardType type)
         {
@@ -49,29 +68,84 @@ namespace Assets.Scripts.Gamers
             return -1;
         }
 
-
+        public virtual int? GetIndexOfCardToPlay()
+        {
+            return this.HeadOfThinkingChain.GetIndexOfCardToPlay();
+        }
     }
 
+    public class NormalState : State
+    {
+        public NormalState()
+        {
+            this.HeadOfThinkingChain = new CheckingBlockOfChain(Deck.Deck.CardType.CHECK);
+        }
+    }
+
+    public class AggresiveState : State
+    {
+        public AggresiveState()
+        {
+            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.SKIP);
+            this.HeadOfThinkingChain.NextBlock = new ThinkingBlockOfChain(Deck.Deck.CardType.ATTACK);
+        }
+    }
+
+    public class PreShuffleDecoratedState : State
+    {
+        State state;
+        public PreShuffleDecoratedState(State state)
+        {
+            this.state = state;
+            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.SHUFFLE);
+            this.HeadOfThinkingChain.NextBlock = state.Head;
+        }
+    }
+
+    public class PostShuffleDecoratedState : State
+    {
+        State state;
+        public PostShuffleDecoratedState(State state)
+        {
+            this.state = state;
+            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.SHUFFLE);
+            ThinkingBlockOfChain tail = state.Head;
+            while (tail.NextBlock != null)
+                tail = tail.NextBlock;
+            tail.NextBlock = this.HeadOfThinkingChain;
+        }
+    }
+    public class PreAttackDecoratedState : State
+    {
+        State state;
+        public PreAttackDecoratedState(State state)
+        {
+            this.state = state;
+            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.ATTACK);
+            this.HeadOfThinkingChain.NextBlock = state.Head;
+        }
+    }
 
     public class StateSet
     {
         public enum StateType
         {
-            NORMAL, OVERFLOWED
+            NORMAL, AGGRESIVE
         }
         private State normal;
-        private State overflowed;
+        private State aggresive; 
+
         public State Normal
         {
             get => this.normal;
         }
-        public State Overflowed
+        public State Aggresive
         {
-            get => this.overflowed;
+            get => this.aggresive;
         }
         public StateSet(Enemy enemy)
         {
-           //this.overflowed = new OverflowedState(server);
+            //this.overflowed = new OverflowedState(server);
         }
     }
 
@@ -170,9 +244,9 @@ namespace Assets.Scripts.Gamers
                         this.State = this.StateSet.Normal;
                     }
                     break;
-                case StateSet.StateType.OVERFLOWED:
+                case StateSet.StateType.AGGRESIVE:
                     {
-                        this.State = this.StateSet.Overflowed;
+                        this.State = this.StateSet.Aggresive;
                     }
                     break;
 
