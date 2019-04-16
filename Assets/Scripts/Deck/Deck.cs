@@ -133,6 +133,7 @@ namespace Assets.Scripts.Deck
 
         public Card GetCard()
         {
+            
             if (this.Remained() == 0)
             {
                 return null;
@@ -140,6 +141,12 @@ namespace Assets.Scripts.Deck
             Card card = null;
             if (NextCards.Count != 0)
             {
+                string res = "Next Cards: ";
+                for (int i = 0; i < NextCards.Count; i++)
+                {
+                    res += NextCards[i].ToString() + ", ";
+                }
+                GameManagerSrc.Instance.Test(res);
                 card = GetCard(NextCards[0]);
                 NextCards.RemoveAt(0);
             }
@@ -157,17 +164,28 @@ namespace Assets.Scripts.Deck
                 {
                     if(type != CardType.EXPLOSION)
                         CardList.CardRemained--;
-                    bool test = CardList.ExistincCards.Count != 0;
                     Card resultCard =  CardList.ExistincCards.Count != 0 ? CardList.ExistincCards.Pop() : CardList.CardTemplates.Clone() as Card;
+                    GameManagerSrc.Instance.Test("КОЛОДА ВЫДАЕТ КАРТУ! " + resultCard.Name);
                     CardLists[type] = CardList; // CardList это просто копия CardLists[type], поэтому синхронизируем изменения
-                    if (test)
-                    {
-                        GameManagerSrc.Instance.Test("Added from Stack: " + resultCard.Name);
-                    }
                     return resultCard;
                 } 
             }
             catch (Exception) {  }
+            return null;
+        }
+
+        public Card GetCardWithoutLosing(CardType type)
+        {
+            try
+            {
+                CardListInfo CardList = CardLists[type]; // До добавляния карт Взрыва и Обезвреживания может возникнуть исключение
+
+                if (CardList.CardRemained > 0)
+                {
+                    return CardList.ExistincCards.Count != 0 ? CardList.ExistincCards.Pop() : CardList.CardTemplates.Clone() as Card;
+                }
+            }
+            catch (Exception) { }
             return null;
         }
 

@@ -11,7 +11,7 @@ namespace Assets.Scripts.Gamers
     //First Block of NormalState, that can change State of EnemyPlayer
     public class CheckingBlockOfChain : ThinkingBlockOfChain
     {
-        public CheckingBlockOfChain(Deck.Deck.CardType type) : base(type)
+        public CheckingBlockOfChain(Deck.Deck.CardType type, Enemy self) : base(type, self)
         {
             if (type != Deck.Deck.CardType.CHECK)
                 throw new System.Exception("Type Conflict! To Create CheckingBlockOfChain used " + type.ToString() + " type");
@@ -27,29 +27,41 @@ namespace Assets.Scripts.Gamers
 
         public override int? GetIndexOfCardToPlay()
         {
+            GameManagerSrc.Instance.Test("Begin of check");
             if (this.self.NextCardTypes.Count != 0)
             {
+                GameManagerSrc.Instance.Test("I know some cards");
                 if (hasExplosion(GameManagerSrc.Instance.NumberOfCardToGetByMe))
                 {
-                    //Change state to Aggression or Gambling;
-                    return null;
+                    GameManagerSrc.Instance.Test("I about bombs");
+                    this.self.ChangeState(this.self.StateSet.GetAggresiveState(true));
+                    return this.self.State.GetIndexOfCardToPlay();
                 }
                 else if (this.self.NextCardTypes.Count >= GameManagerSrc.Instance.NumberOfCardToGetByMe)
                 {
                     //Signal to getCard
+                    GameManagerSrc.Instance.Test("I know that there are not bombs");
                     return null;
                 }
             }
             int? index = self.State.TryToGetIndexOfCard(type);
-            return index != -1 ? index : null;
+            GameManagerSrc.Instance.Test("Пытаюсь найти Чек");
+            if (index != -1)
+                return index;
+            GameManagerSrc.Instance.Test("Чек не найден. Переходим в Агрессивное состояние");
+            this.self.ChangeState(this.self.StateSet.GetAggresiveState(false));
+            return this.self.State.GetIndexOfCardToPlay();
         }
     }
-
-
 
     public abstract class State
     {
         Enemy self;
+
+        public Enemy Self
+        {
+            get => self;
+        }
 
         protected ThinkingBlockOfChain HeadOfThinkingChain;
 
@@ -58,7 +70,12 @@ namespace Assets.Scripts.Gamers
             get => HeadOfThinkingChain;
         }
 
-        public int TryToGetIndexOfCard(Deck.Deck.CardType type)
+        public State(Enemy self)
+        {
+            this.self = self;
+        }
+
+        public int? TryToGetIndexOfCard(Deck.Deck.CardType type)
         {
             foreach (Transform cardTransform in this.self.Hand)
             {
@@ -76,28 +93,28 @@ namespace Assets.Scripts.Gamers
 
     public class NormalState : State
     {
-        public NormalState()
+        public NormalState(Enemy self) : base(self)
         {
-            this.HeadOfThinkingChain = new CheckingBlockOfChain(Deck.Deck.CardType.CHECK);
+            this.HeadOfThinkingChain = new CheckingBlockOfChain(Deck.Deck.CardType.CHECK, this.Self);
         }
     }
 
     public class AggresiveState : State
     {
-        public AggresiveState()
+        public AggresiveState(Enemy self) : base(self)
         {
-            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.SKIP);
-            this.HeadOfThinkingChain.NextBlock = new ThinkingBlockOfChain(Deck.Deck.CardType.ATTACK);
+            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.SKIP, this.Self);
+            this.HeadOfThinkingChain.NextBlock = new ThinkingBlockOfChain(Deck.Deck.CardType.ATTACK, this.Self);
         }
     }
 
     public class PreShuffleDecoratedState : State
     {
         State state;
-        public PreShuffleDecoratedState(State state)
+        public PreShuffleDecoratedState(State state) : base(state.Self)
         {
             this.state = state;
-            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.SHUFFLE);
+            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.SHUFFLE, this.Self);
             this.HeadOfThinkingChain.NextBlock = state.Head;
         }
     }
@@ -105,10 +122,10 @@ namespace Assets.Scripts.Gamers
     public class PostShuffleDecoratedState : State
     {
         State state;
-        public PostShuffleDecoratedState(State state)
+        public PostShuffleDecoratedState(State state) : base(state.Self)
         {
             this.state = state;
-            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.SHUFFLE);
+            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.SHUFFLE, this.Self);
             ThinkingBlockOfChain tail = state.Head;
             while (tail.NextBlock != null)
                 tail = tail.NextBlock;
@@ -118,10 +135,10 @@ namespace Assets.Scripts.Gamers
     public class PreAttackDecoratedState : State
     {
         State state;
-        public PreAttackDecoratedState(State state)
+        public PreAttackDecoratedState(State state) : base(state.Self)
         {
             this.state = state;
-            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.ATTACK);
+            this.HeadOfThinkingChain = new ThinkingBlockOfChain(Deck.Deck.CardType.ATTACK, this.Self);
             this.HeadOfThinkingChain.NextBlock = state.Head;
         }
     }
@@ -133,7 +150,8 @@ namespace Assets.Scripts.Gamers
             NORMAL, AGGRESIVE
         }
         private State normal;
-        private State aggresive; 
+        private State aggresive;
+        private Enemy self;
 
         public State Normal
         {
@@ -143,9 +161,23 @@ namespace Assets.Scripts.Gamers
         {
             get => this.aggresive;
         }
-        public StateSet(Enemy enemy)
+        public StateSet(Enemy self)
         {
-            //this.overflowed = new OverflowedState(server);
+            this.self = self;
+            this.normal = new NormalState(self);
+            this.aggresive = new AggresiveState(self);
+        }
+
+        public State GetAggresiveState(bool bombs)
+        {
+            State resultState = this.aggresive;
+            if (GameManagerSrc.Instance.NumberOfCardToGetByMe > 1)
+                resultState = new PreAttackDecoratedState(this.aggresive);
+            if (bombs && this.self.HasNeutralization())
+                resultState = new PreShuffleDecoratedState(this.aggresive);
+            if (bombs && !this.self.HasNeutralization())
+                resultState = new PostShuffleDecoratedState(this.aggresive);
+            return resultState;
         }
     }
 
@@ -154,7 +186,11 @@ namespace Assets.Scripts.Gamers
         public State State;
         public StateSet StateSet;
 
-        public Enemy(Transform Hand, GameManagerSrc GameManager) : base(Hand, GameManager) { }
+        public Enemy(Transform Hand, GameManagerSrc GameManager) : base(Hand, GameManager) {
+            this.StateSet = new StateSet(this);
+            this.State = this.StateSet.Normal;
+            this.NextCardTypes = new List<Deck.Deck.CardType>();
+        }
 
         public List<Deck.Deck.CardType> NextCardTypes;
 
@@ -207,14 +243,26 @@ namespace Assets.Scripts.Gamers
 
         protected override IEnumerator PlayngCards()
         {
+            GameManager.Test("Begin of playing");
             GameManager.StartCoroutine(ClockControl());
             yield return new WaitForSeconds(1);
-            for (int i = 0; i < Hand.transform.childCount; i++)
+
+            do
             {
-                GameObject cardGO = Hand.gameObject.transform.GetChild(i).gameObject;
+                this.ChangeState(this.StateSet.Normal);
+                int? index = this.State.GetIndexOfCardToPlay();
+                if (index == null)
+                {
+                    //end turn
+                    GameManager.Test("I am going to get card");
+                    yield return new WaitForSeconds(2);
+                    EndTurn();
+                    break;
+                }
+
+                GameObject cardGO = Hand.gameObject.transform.GetChild(index.Value).gameObject;
                 CardControl cardControl = cardGO.GetComponent<CardControl>();
-                if (!cardControl.Card.isPlayable)
-                    continue;
+                GameManager.Test("Играю карту номер " + index.ToString() + ", " + cardControl.Card.Name);
                 cardControl.Movement.Discard();
                 yield return new WaitForSeconds(1);
                 cardControl.Movement.SetAsDiscarded();
@@ -227,30 +275,22 @@ namespace Assets.Scripts.Gamers
                 else
                 {
                     cardControl.Card.Effect.Execute();
-                    EndTurn();
-                    break;
+
                 }
-            }
-            yield return new WaitForSeconds(2);
-            EndTurn();
+            } while (this.Hand.childCount != 0);
+
+
         }
 
-        public void ChangeState(StateSet.StateType newState)
+        public void ChangeState(State newState)
         {
-            switch (newState)
-            {
-                case StateSet.StateType.NORMAL:
-                    {
-                        this.State = this.StateSet.Normal;
-                    }
-                    break;
-                case StateSet.StateType.AGGRESIVE:
-                    {
-                        this.State = this.StateSet.Aggresive;
-                    }
-                    break;
+            this.State = newState;
+        }
 
-            }
+        public void NoticeGettingCard()
+        {
+            if (this.NextCardTypes.Count > 0)
+                this.NextCardTypes.RemoveAt(0);
         }
     }
 }

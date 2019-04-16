@@ -12,14 +12,17 @@ namespace Assets.Scripts.Gamers.EnemyThinkingBlock
         public Enemy self;
         public ThinkingBlockOfChain NextBlock = null;
 
-        public ThinkingBlockOfChain(Deck.Deck.CardType type)
+        public ThinkingBlockOfChain(Deck.Deck.CardType type, Enemy self)
         {
             this.type = type;
+            this.self = self;
         }
 
         public virtual int? GetIndexOfCardToPlay()
         {
-            int index = self.State.TryToGetIndexOfCard(type);
+
+            int? index = self.State.TryToGetIndexOfCard(type);
+            GameManagerSrc.Instance.Test("I try to get card bu type " + type.ToString() + ", index is " + (index.Value.ToString() ?? "Null"));
             return index != -1 ? index : NextBlock?.GetIndexOfCardToPlay();
         }
     }

@@ -78,7 +78,8 @@ public class GameManagerSrc : MonoBehaviour
 
     void Start()
     {
-
+        PhraseEnvoicer.InitSystem();
+        PhraseEnvoicer.PlayText("End of turn");
         StartCoroutine(StartManipulation());
     }
 
@@ -180,11 +181,19 @@ public class GameManagerSrc : MonoBehaviour
     }
     public void Shuffle()
     {
+        foreach (Gamer gamer in Gamers)
+        {
+            try
+            {
+                (gamer as Enemy).NextCardTypes = new List<Deck.CardType>();
+            }
+            catch (System.Exception e) { } //NullPointer or FailedCast
+        }
         Deck.Shuffle();
     }
     public void Check()
     {
-        List<Deck.CardType> nextCards = Deck.CheckForNextCards(3);
+        List<Deck.CardType> nextCards = new List<Deck.CardType>(Deck.CheckForNextCards(3));
         string res = "Next Cards: ";
         for (int i = 0; i < nextCards.Count; i++)
         {
@@ -196,8 +205,9 @@ public class GameManagerSrc : MonoBehaviour
             InfoScr info = InfoScreen.GetComponent<InfoScr>();
             info.SinglMessage(res);
             foreach (Deck.CardType type in nextCards)
-                info.SetCard(CreateCardForPlace(Deck.GetCard(type), info.CardPlace));
+                info.SetCard(CreateCardForPlace(Deck.GetCardWithoutLosing(type), info.CardPlace));
             InfoScreen.SetActive(true);
+            PhraseEnvoicer.PlayText(res);
         }
         else
         {
@@ -221,19 +231,19 @@ public class GameManagerSrc : MonoBehaviour
     public void Explosion()
     {
         StopAllCoroutines();
-        InfoScreen.SetActive(true);
+        
         InfoScr infoScr = InfoScreen.GetComponent<InfoScr>();
         infoScr.ActionButtonActive(CurrentPlayer.HasNeutralization());
         infoScr.SetCard(CurrentPlayer.ExplosionCard);
         if (!IsPlayerTurn)
             infoScr.AcceptButtonActive();
-        infoScr.SetMessage(
-            "The bomb was pulled out of the deck!\n"
-            +(IsPlayerTurn ? "You have " : "Your Opponent has ")
-            +(CurrentPlayer.HasNeutralization() ? "" : "no ")
-            + "Neutralization Card"
-            );
-
+        string res = "The bomb was pulled out of the deck!\n"
+            + (IsPlayerTurn ? "You have " : "Your Opponent has ")
+            + (CurrentPlayer.HasNeutralization() ? "" : "no ")
+            + "Neutralization Card";
+        infoScr.SetMessage(res);
+        InfoScreen.SetActive(true);
+        PhraseEnvoicer.PlayText(res);
     }
 
     private int NumOfPlayerRemained()
@@ -282,19 +292,34 @@ public class GameManagerSrc : MonoBehaviour
 
     private IEnumerator ChangingTurn()
     {
+        print("надо взять " + NumberOfCardToGet);
         while (NumberOfCardToGet-- > 0)
+        {
+            foreach (Gamer gamer in Gamers)
+            {
+                try
+                {
+                    (gamer as Enemy).NoticeGettingCard();
+                }
+                catch (System.Exception e) { } //NullPointer or FailedCast
+            }
+            print("осталось взять " + NumberOfCardToGet);
             yield return CurrentPlayer.GetCardToHand(CurrentGame.Deck);
+        }
+          
         do
         {
             NumberOfCurrentPlayer++;
         } while (CurrentPlayer == null);
         NumberOfCardToGet = 1;
         SwitchBTN();
+        print("Ходит игрок номер " + CurrentPlayerIndex);
         CurrentPlayer.Turn();
     }
 
     public void ChangeTurn()
     {
+        PhraseEnvoicer.PlayText("End of turn");
         if (NumberOfCardToGet < 0)
             NumberOfCardToGet = 1;
         StopAllCoroutines();
