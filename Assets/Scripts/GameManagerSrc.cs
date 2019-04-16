@@ -79,7 +79,7 @@ public class GameManagerSrc : MonoBehaviour
     void Start()
     {
         PhraseEnvoicer.InitSystem();
-        PhraseEnvoicer.PlayText("End of turn");
+        PhraseEnvoicer.PlayText("Игра начинается! Раздаем Карты");
         StartCoroutine(StartManipulation());
     }
 
@@ -106,6 +106,7 @@ public class GameManagerSrc : MonoBehaviour
 
         }
         Deck.FillByExtraCards();
+        PhraseEnvoicer.PlayText("Раздаем карты нейтрализации");
         foreach (Gamer gamer in Gamers)
         {
             yield return gamer.GetCardToHand(Deck.GetCard(Deck.CardType.NEUTRALIZATION));
@@ -117,7 +118,7 @@ public class GameManagerSrc : MonoBehaviour
 
     public GameObject CreateCard(Card card, Transform Hand)
     {
-        GameObject cardGO = CreateCardForPlace(card, Hand);
+        GameObject cardGO = CreateCardForPlace(card, DeckStorage);
         cardGO.GetComponent<CardControl>().Movement.GettingProcess(Hand);
         return cardGO;
     }
@@ -168,19 +169,20 @@ public class GameManagerSrc : MonoBehaviour
     //Comands
     public void SkipTurn()
     {
-        print("SkipTurn");
+        PhraseEnvoicer.PlayText("Пропуск хода");
         NumberOfCardToGet--;
         ChangeTurn();
     }
     public void Attack()
     {
-        print("Attack");
+        PhraseEnvoicer.PlayText("Атака");
         NumberOfCardToGet = 0;
         ChangeTurn();
         NumberOfCardToGet = 2;
     }
     public void Shuffle()
     {
+        PhraseEnvoicer.PlayText("Перетасовка");
         foreach (Gamer gamer in Gamers)
         {
             try
@@ -194,14 +196,13 @@ public class GameManagerSrc : MonoBehaviour
     public void Check()
     {
         List<Deck.CardType> nextCards = new List<Deck.CardType>(Deck.CheckForNextCards(3));
-        string res = "Next Cards: ";
-        for (int i = 0; i < nextCards.Count; i++)
-        {
-            res += nextCards[i].ToString() + ", ";
-        }
-        print(res);
         if (IsPlayerTurn)
         {
+            string res = "Следующие карты: ";
+            for (int i = 0; i < nextCards.Count; i++)
+            {
+                res += Deck.GetRusName(nextCards[i]) + ", ";
+            }
             InfoScr info = InfoScreen.GetComponent<InfoScr>();
             info.SinglMessage(res);
             foreach (Deck.CardType type in nextCards)
@@ -211,6 +212,7 @@ public class GameManagerSrc : MonoBehaviour
         }
         else
         {
+            PhraseEnvoicer.PlayText("Проверка");
             (CurrentPlayer as Enemy).NextCardTypes = nextCards;
         }
     }
@@ -237,13 +239,13 @@ public class GameManagerSrc : MonoBehaviour
         infoScr.SetCard(CurrentPlayer.ExplosionCard);
         if (!IsPlayerTurn)
             infoScr.AcceptButtonActive();
-        string res = "The bomb was pulled out of the deck!\n"
-            + (IsPlayerTurn ? "You have " : "Your Opponent has ")
-            + (CurrentPlayer.HasNeutralization() ? "" : "no ")
-            + "Neutralization Card";
+        string res = "Вытянутая карта оказалась взрывом!\n"
+            + (IsPlayerTurn ? "У вас " : "У вашего опонента ")
+            + (CurrentPlayer.HasNeutralization() ? "есть " : "нет ")
+            + "Карты Нейтрализации!";
         infoScr.SetMessage(res);
         InfoScreen.SetActive(true);
-        PhraseEnvoicer.PlayText(res);
+        PhraseEnvoicer.PlayText("Взрыв " + (CurrentPlayer.HasNeutralization() ? "" : "не ") + "будет нейтрализован");
     }
 
     private int NumOfPlayerRemained()
@@ -286,13 +288,13 @@ public class GameManagerSrc : MonoBehaviour
     {
         InfoScreen.SetActive(true);
         InfoScr infoScr = InfoScreen.GetComponent<InfoScr>();
-        infoScr.SinglMessage("You Win!\nReturn to Menu");
+        infoScr.SinglMessage("Победа!\nВозвращайтесь в главное меню чтоб начать новую игру!");
+        PhraseEnvoicer.PlayText("Победа!\nВозвращайтесь в главное меню чтоб начать новую игру!");
         infoScr.ActionButtonActive(false);
     }
 
     private IEnumerator ChangingTurn()
     {
-        print("надо взять " + NumberOfCardToGet);
         while (NumberOfCardToGet-- > 0)
         {
             foreach (Gamer gamer in Gamers)
@@ -303,7 +305,6 @@ public class GameManagerSrc : MonoBehaviour
                 }
                 catch (System.Exception e) { } //NullPointer or FailedCast
             }
-            print("осталось взять " + NumberOfCardToGet);
             yield return CurrentPlayer.GetCardToHand(CurrentGame.Deck);
         }
           
@@ -313,13 +314,11 @@ public class GameManagerSrc : MonoBehaviour
         } while (CurrentPlayer == null);
         NumberOfCardToGet = 1;
         SwitchBTN();
-        print("Ходит игрок номер " + CurrentPlayerIndex);
         CurrentPlayer.Turn();
     }
 
     public void ChangeTurn()
     {
-        PhraseEnvoicer.PlayText("End of turn");
         if (NumberOfCardToGet < 0)
             NumberOfCardToGet = 1;
         StopAllCoroutines();
@@ -327,14 +326,14 @@ public class GameManagerSrc : MonoBehaviour
     }
 
 
-    //DebugLog
-    public void Test(string s)
-    {
-        print(s);
-    }
+    ////DebugLog
+    //public void Test(string s)
+    //{
+    //    print(s);
+    //}
 
     public void MainMenu()
     {
-        SceneManager.LoadScene("MainMenu", LoadSceneMode.Additive);
+        SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
     }
 }

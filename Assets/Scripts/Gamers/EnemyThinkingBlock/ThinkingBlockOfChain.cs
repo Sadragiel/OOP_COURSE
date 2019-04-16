@@ -22,7 +22,6 @@ namespace Assets.Scripts.Gamers.EnemyThinkingBlock
         {
 
             int? index = self.State.TryToGetIndexOfCard(type);
-            GameManagerSrc.Instance.Test("I try to get card bu type " + type.ToString() + ", index is " + (index.Value.ToString() ?? "Null"));
             return index != -1 ? index : NextBlock?.GetIndexOfCardToPlay();
         }
     }

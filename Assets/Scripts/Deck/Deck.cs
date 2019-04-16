@@ -38,7 +38,7 @@ namespace Assets.Scripts.Deck
         Dictionary<CardType, CardListInfo> CardLists;
         List<CardType> NextCards;
         CardCreator Creator;
-        
+
 
         public Deck(int NumOfPlayers)
         {
@@ -66,7 +66,7 @@ namespace Assets.Scripts.Deck
             bool res = true;
             foreach (KeyValuePair<CardType, CardListInfo> entry in CardLists)
             {
-                
+
                 res = res && entry.Value.CardRemained <= 0;
                 if (!res)
                     return res;
@@ -102,7 +102,7 @@ namespace Assets.Scripts.Deck
                     {
                         NextCards.Add(type);
                         wasFound = true;
-                    } 
+                    }
                 }
             }
             return NextCards;
@@ -133,7 +133,7 @@ namespace Assets.Scripts.Deck
 
         public Card GetCard()
         {
-            
+
             if (this.Remained() == 0)
             {
                 return null;
@@ -141,16 +141,10 @@ namespace Assets.Scripts.Deck
             Card card = null;
             if (NextCards.Count != 0)
             {
-                string res = "Next Cards: ";
-                for (int i = 0; i < NextCards.Count; i++)
-                {
-                    res += NextCards[i].ToString() + ", ";
-                }
-                GameManagerSrc.Instance.Test(res);
                 card = GetCard(NextCards[0]);
                 NextCards.RemoveAt(0);
             }
-            while(card == null)
+            while (card == null)
                 card = GetCard(GetRandomType());
             return card;
         }
@@ -159,18 +153,17 @@ namespace Assets.Scripts.Deck
             try
             {
                 CardListInfo CardList = CardLists[type]; // До добавляния карт Взрыва и Обезвреживания может возникнуть исключение
-                
+
                 if (CardList.CardRemained > 0)
                 {
-                    if(type != CardType.EXPLOSION)
+                    if (type != CardType.EXPLOSION)
                         CardList.CardRemained--;
-                    Card resultCard =  CardList.ExistincCards.Count != 0 ? CardList.ExistincCards.Pop() : CardList.CardTemplates.Clone() as Card;
-                    GameManagerSrc.Instance.Test("КОЛОДА ВЫДАЕТ КАРТУ! " + resultCard.Name);
+                    Card resultCard = CardList.ExistincCards.Count != 0 ? CardList.ExistincCards.Pop() : CardList.CardTemplates.Clone() as Card;
                     CardLists[type] = CardList; // CardList это просто копия CardLists[type], поэтому синхронизируем изменения
                     return resultCard;
-                } 
+                }
             }
-            catch (Exception) {  }
+            catch (Exception) { }
             return null;
         }
 
@@ -199,6 +192,38 @@ namespace Assets.Scripts.Deck
                 : CardType.NEUTRALIZATION;
         }
 
+        public string GetRusName(CardType type)
+        {
+            switch (type)
+            {
+                case CardType.ATTACK:
+                    {
+                        return "Атака";
+                    }
+                case CardType.CHECK:
+                    {
+                        return "Проверка Верхних Карт";
+                    }
+                case CardType.EXPLOSION:
+                    {
+                        return "Взрыв";
+                    }
+                case CardType.NEUTRALIZATION:
+                    {
+                        return "Нейтрализация";
+                    }
+                case CardType.SHUFFLE:
+                    {
+                        return "Перемешивание Колоды";
+                    }
+                case CardType.SKIP:
+                    {
+                        return "Пропуск Хода";
+                    }
+            }
+            return "";
+        }
+
         public void ReturnToTheDeck(GameObject cardGO)
         {
             Card card = cardGO.GetComponent<CardControl>().Card;
@@ -212,10 +237,8 @@ namespace Assets.Scripts.Deck
         public void WasExplosion()
         {
             CardListInfo cl = this.CardLists[CardType.EXPLOSION];
-            GameManagerSrc.Instance.Test("Было " + cl.CardRemained);
             cl.CardRemained--;
             this.CardLists[CardType.EXPLOSION] = cl;
-            GameManagerSrc.Instance.Test("Стало " + cl.CardRemained);
         }
     }
 }
